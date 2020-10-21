@@ -34,6 +34,55 @@ export function selectSKUByStore(data) {
     data
   })
 }
+// 渠道商设置商品价格以及库存同时上架
+export function setGoodsPriceByStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/setGoodsPriceByStore',
+    method: 'post',
+    data
+  })
+}
+
+// 渠道商新增商品类别展示
+export function addStoreTypeByStore(data) {
+  return request({
+    url: '/store/storeGoodsTypeManager/addStoreTypeByStore',
+    method: 'post',
+    data
+  })
+}
+// 渠道商的商品类别展示
+export function selectStoreTypeByStore(data) {
+  return request({
+    url: '/store/storeGoodsTypeManager/selectStoreTypeByStore',
+    method: 'post',
+    data
+  })
+}
+// 渠道商删除自己的商品类别展示
+export function delStoreTypeByStore(data) {
+  return request({
+    url: '/store/storeGoodsTypeManager/delStoreTypeByStore',
+    method: 'post',
+    data
+  })
+}
+// 渠道商修改自己的商品类别展示
+export function updateStoreTypeByStore(data) {
+  return request({
+    url: '/store/storeGoodsTypeManager/updateStoreTypeByStore',
+    method: 'post',
+    data
+  })
+}
+// 渠道商商品类别展示(级联)
+export function getTypeList(data) {
+  return request({
+    url: '/store/storeGoodsTypeManager/getTypeList',
+    method: 'post',
+    data
+  })
+}
 // ================================
 // 新增渠道商
 export function addStore(data) {

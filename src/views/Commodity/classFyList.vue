@@ -35,37 +35,26 @@
           row-key="id"
         >
           <el-table-column prop="name" label="分类名称" />
-          <el-table-column prop="imgUrl" label="LOGO">
+          <el-table-column prop="img" label="LOGO">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
-                <viewer>
-                  <img
-                    :src="scope.row.imgUrl"
-                    alt="无图片"
-                    style="height: 50px; width: 50px;display: block;cursor: pointer;"
-                  >
-                </viewer>
+                <img
+                  :src="scope.row.img"
+                  alt="无图片"
+                  style="height: 50px; width: 50px;display: block;cursor: pointer;"
+                >
+
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="courseCount" label="课程数" align="center" />
+          <!-- <el-table-column prop="courseCount" label="课程数" align="center" /> -->
           <el-table-column prop="sort" label="排序" align="center">
             <template slot-scope="scope">
-              {{ scope.row.sort }}
+              {{ scope.row.orderNum }}
             </template>
           </el-table-column>
-          <el-table-column prop="isOpen" label="是否显示" align="center">
-            <template slot-scope="scope">
-              <el-switch
-                :value="scope.row.isOpen===1?true:false"
-                active-color="#13ce66"
-                inactive-color="#dee3e6"
-                @change="isUp(scope.row)"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column prop="updateName" label="编辑者" align="center" />
-          <el-table-column prop="updateTime" label="编辑时间" :formatter="dateFormat" align="center" />
+          <!-- <el-table-column prop="updateName" label="编辑者" align="center" /> -->
+          <el-table-column prop="createTime" label="编辑时间" align="center" />
           <el-table-column prop="operation" label="操作" align="center">
             <template slot-scope="scope">
               <el-button type="text" size="mini" @click="edit(scope.row)">编辑</el-button>
@@ -97,28 +86,24 @@
         >
           <el-form ref="addEditData" :rules="addEditrules" :model="addEditData" label-width="100px" size="mini">
             <el-row :gutter="10">
-              <el-col :span="10">
-                <el-form-item label="LOGO：" required>
-                  <el-upload
-                    ref="upload"
-                    accept="image/jpeg, image/jpg, image/png"
-                    :action="oss.action"
-                    :data="oss.data"
-                    :on-success="handSuccess"
-                    :on-change="handChange"
-                    :auto-upload="false"
-                    :show-file-list="false"
-                    class="avatar-uploader"
-                  >
-                    <img v-if="oss.imgUrl" :src="oss.imgUrl" class="avatar">
-                    <i v-else class="el-icon-plus avatar-uploader-icon" />
-                  </el-upload>
-                </el-form-item>
-              </el-col>
-              <el-col :span="14">
-                <el-button size="mini" type="primary" @click="submitUpload">上传服务器</el-button>
-                <div class="el-upload__tip">banner图片上传jpg/png文件格式<br>且不超过1M，图片高宽60像素</div>
-              </el-col>
+
+              <el-form-item label="LOGO：">
+                <el-upload
+                  ref="upload"
+                  list-type="picture-card"
+                  action
+                  :file-list="fileList"
+                  :show-file-list="true"
+                  :http-request="uploadFile"
+                  accept="image/gif,image/jpeg,image/jpg,image/png,image/svg"
+                  :limit="1"
+                  :on-remove="handleRemove"
+                  :on-change="handlePreview"
+                  :on-exceed="handleExceed"
+                >
+                  <i class="el-icon-plus" />
+                </el-upload>
+              </el-form-item>
             </el-row>
             <el-form-item v-if="+fenleiShow === 1" label="一级分类：" style="line-height:60px" prop="name">
               <el-input v-model="addEditData.name" placeholder="请填写分类名称" style="width:100%;" />
@@ -132,22 +117,22 @@
             <el-form-item label="分类排序：" prop="sort">
               <el-input v-model.number="addEditData.sort" placeholder="请填写分类排序" style="width:100%;" />
             </el-form-item>
-            <el-form-item prop="isShow" label="是否显示：">
+            <!-- <el-form-item prop="isShow" label="是否显示：">
               <el-radio-group v-model="addEditData.isShow">
                 <el-radio label="1">是</el-radio>
                 <el-radio label="0">否</el-radio>
               </el-radio-group>
-            </el-form-item>
-            <!-- <el-form-item prop="isRecommend" label="是否推荐：">
-              <el-radio-group v-model="addEditData.isRecommend">
-                <el-radio label="1">推荐</el-radio>
-                <el-radio label="0">不推荐</el-radio>
-              </el-radio-group>
             </el-form-item> -->
+            <el-form-item prop="isRecommend" label="是否热门：">
+              <el-radio-group v-model="addEditData.isRecommend">
+                <el-radio label="1">热门</el-radio>
+                <el-radio label="0">否</el-radio>
+              </el-radio-group>
+            </el-form-item>
           </el-form>
           <div class="el-center">
-            <ElButton type="primary" size="mini" @click="onSubmit('addEditData')">提交</ElButton>
-            <ElButton size="mini" plain @click="addFenleivisible=false">取消</ElButton>
+            <el-button type="primary" size="mini" @click="onSubmit('addEditData')">提交</el-button>
+            <el-button size="mini" plain @click="addFenleivisible=false">取消</el-button>
           </div>
         </el-dialog>
       </div>
@@ -156,14 +141,15 @@
 </template>
 
 <script>
-import { getfenleilist, saveCourseCategory, deleteCourseCategory, updateCourseCategory, openOrCloseCategory } from '@/api/kaoshi_lrs'
-import moment from 'moment'
-import common_problem_listVue from '../information-manage/common_problem_list.vue'
-import { tracherOssImg } from '@/utils/ossimg'
-import { newGeneratePostPolicy } from '@/api/common'
+import { addStoreTypeByStore, updateStoreTypeByStore, selectStoreTypeByStore, delStoreTypeByStore } from '@/api/user'
+import { fileUpload } from '@/api/chengxu'
 export default {
   data() {
     return {
+      // 上传中转
+      uploadData: '',
+      fileList: [],
+
       bodyHeight: '', // 获取浏览器的高度，背景色
       searchData: {// 搜索数据
         name_value: '', // 分类名称
@@ -178,6 +164,7 @@ export default {
       addFenleivisible: false, // 新增分类、编辑弹出框
       title: '', // 新增分类、编辑名字
       addEditData: {// 新增、编辑字段
+        cYImg: '',
         name: '', // 一级名称
         name1: '', // 二级名称
         twofenleiName: '', // 创建二级时获取一级的名称
@@ -186,15 +173,6 @@ export default {
         isRecommend: '1', // 是否推荐
         pid: '', // 父级id
         id: ''// 修改id
-      },
-      oss: {// banner图
-        img_oss: {},
-        action: '',
-        imgUrl: '',
-        data: {},
-        imgId: '',
-        imageInfoFlag: false,
-        imageTemporaryFlag: false
       },
       addEditrules: {
         name: [
@@ -223,6 +201,38 @@ export default {
     this.getlist()
   },
   methods: {
+    // 上传------
+    handleExceed(file) {
+      this.$message({
+        message: '封面文件只允许上传一张，如需重新上传请删除已存在封面',
+        type: 'warning'
+      })
+    },
+    handleRemove(file) {
+      console.log(file)
+    },
+    uploadFile(e) {
+      fileUpload(this.uploadData).then(res => {
+        if (res) {
+          this.addEditData.cYImg = res.data
+          this.$message({
+            message: '上传成功',
+            type: 'success'
+          })
+        } else {
+          this.$message.error(res.status)
+        }
+      })
+    },
+
+    // 获取上传文件信息
+    handlePreview(file) {
+      const _this = this
+      var formData = new FormData()
+      formData.append('file', file.raw)
+      _this.uploadData = formData
+    },
+    // =======
     /*
     *功能描述：获取列表
     *开发人员：LRS
@@ -230,19 +240,14 @@ export default {
     getlist() {
       const _this = this
       _this.loading = true
-      var cansu = {
-        name: _this.searchData.name_value,
+
+      selectStoreTypeByStore({
         current: _this.current,
         size: _this.size,
-        startTime: _this.searchData.date_value ? _this.searchData.date_value[0] : '',
-        endTime: _this.searchData.date_value ? _this.searchData.date_value[1] : ''
-      }
-      getfenleilist(cansu).then(res => {
-        if (+res.code === 1) {
+        parentId: ''
+      }).then(res => {
+        if (res.status) {
           _this.tableData = res.data.records
-          var json = JSON.stringify(_this.tableData).replace(/childrenList/g, 'children')
-          _this.tableData = JSON.parse(json)
-          console.log(_this.tableData)
           _this.total = res.data.total
           setTimeout(() => {
             _this.loading = false
@@ -262,26 +267,21 @@ export default {
     *开发人员：LRS
     */
     addFenleipop() {
-      this.oss.imgUrl = ''
       this.title = '添加分类'
       this.addFenleivisible = true
       this.fenleiShow = 1
-      this.getPostPolicy()
     },
     /*
     *功能描述：二级添加分类弹出框
     *开发人员：LRS
     */
     twofenlei(e) {
-      this.oss.imgUrl = ''
       this.addFenleivisible = true
       this.fenleiShow = 2
       this.title = '添加分类'
       console.log(e)
       // this.addEditData.twofenleiName = e.name
       this.addEditData.pid = e.id
-      // this.addEditData.name = e.name
-      this.getPostPolicy()
     },
 
     /*
@@ -290,30 +290,23 @@ export default {
     */
     edit(e) {
       this.addFenleivisible = true
+      this.fileList = []
       this.title = '编辑分类'
-      console.log(e)
-      this.getPostPolicy()
-      this.oss.imageInfoFlag = true
       this.addEditData.name = e.name
       this.addEditData.name1 = e.name
-      this.addEditData.sort = e.sort
-      this.addEditData.isShow = '' + e.isOpen
-      this.addEditData.isRecommend = '' + e.isRecommend
+      this.addEditData.sort = e.orderNum
+      this.addEditData.isRecommend = '' + e.hot
       this.addEditData.id = e.id
-      this.img_url = e.imgUrl
-      this.oss.imgUrl = e.imgUrl
+      this.addEditData.cYImg = e.img
+      this.fileList.push({
+        url: e.img
+      })
 
       if (!e.children) { // 2级
         this.fenleiShow = 2
       } else { // 1级
         this.fenleiShow = 1
       }
-
-      console.log(this.oss.imgUrl)
-      // 图片回显
-      // const obj = new Object()
-      // obj.url = e.imgUrl
-      // this.fileList.push(obj)
     },
 
     /*
@@ -321,30 +314,21 @@ export default {
     *开发人员：LRS
     */
     onSubmit(formName) {
-      // if (this.img_url === '') {
-      //   this.$message({ message: '请上传图片！', type: 'warning' })
-      // } else {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          if (!this.oss.imgUrl) {
-            return this.$message.warning('请上传LOGO！')
-          }
-          if (!this.oss.imageInfoFlag) {
-            return this.$message.warning('请上传LOGO到服务器！')
-          }
           if (this.title === '添加分类') { // 添加分类
             if (+this.fenleiShow === 1) { // 一级分类
               const data = {
+                hot: +this.addEditData.isRecommend,
+                img: this.addEditData.cYImg,
+                level: 0,
                 name: this.addEditData.name,
-                pid: 0,
-                sort: +this.addEditData.sort,
-                imgUrl: this.oss.imgUrl,
-                isOpen: +this.addEditData.isShow,
-                resourceId: this.oss.imgId
+                orderNum: this.addEditData.sort,
+                parentId: ''
               }
-              saveCourseCategory(data).then(res => {
+              addStoreTypeByStore(data).then(res => {
                 console.log(res)
-                if (+res.code === 1) {
+                if (res.status) {
                   this.$message({ message: '添加成功', type: 'success' })
                   this.addFenleivisible = false
                   this.getlist()
@@ -352,17 +336,17 @@ export default {
               })
             } else { // 二级
               const data = {
+                hot: +this.addEditData.isRecommend,
+                img: this.addEditData.cYImg,
+                level: 1,
                 name: this.addEditData.name1,
-                pid: this.addEditData.pid,
-                sort: +this.addEditData.sort,
-                imgUrl: this.oss.imgUrl,
-                isOpen: +this.addEditData.isShow,
-                isRecommend: +this.addEditData.isRecommend,
-                resourceId: this.oss.imgId
+                orderNum: this.addEditData.sort,
+                parentId: this.addEditData.pid
+
               }
-              saveCourseCategory(data).then(res => {
+              addStoreTypeByStore(data).then(res => {
                 console.log(res)
-                if (+res.code === 1) {
+                if (res.status) {
                   this.$message({ message: '添加成功', type: 'success' })
                   this.addFenleivisible = false
                   this.getlist()
@@ -372,38 +356,34 @@ export default {
           } else { // 编辑分类
             if (+this.fenleiShow === 1) { // 一级分类
               const data = {
+                hot: +this.addEditData.isRecommend,
+                img: this.addEditData.cYImg,
+                level: 0,
                 name: this.addEditData.name,
-                pid: 0,
-                sort: +this.addEditData.sort,
-                imgUrl: this.oss.imgUrl,
-                isOpen: +this.addEditData.isShow,
-                isRecommend: +this.addEditData.isRecommend,
                 id: this.addEditData.id,
-                resourceId: this.oss.imgId
+                orderNum: this.addEditData.sort,
+                parentId: ''
               }
-              updateCourseCategory(data).then(res => {
-                console.log(res)
-                if (+res.code === 1) {
-                  this.$message({ message: '修改成功', type: 'success' })
+              updateStoreTypeByStore(data).then(res => {
+                if (res.status) {
+                  this.$message({ message: '添加成功', type: 'success' })
                   this.addFenleivisible = false
                   this.getlist()
                 }
               })
             } else { // 二级
               const data = {
+                hot: +this.addEditData.isRecommend,
+                img: this.addEditData.cYImg,
+                level: 1,
                 name: this.addEditData.name1,
-                pid: this.addEditData.pid,
-                sort: +this.addEditData.sort,
-                imgUrl: this.oss.imgUrl,
-                isOpen: +this.addEditData.isShow,
-                isRecommend: +this.addEditData.isRecommend,
                 id: this.addEditData.id,
-                resourceId: this.oss.imgId
+                orderNum: this.addEditData.sort,
+                parentId: this.addEditData.pid
               }
-              updateCourseCategory(data).then(res => {
-                console.log(res)
-                if (+res.code === 1) {
-                  this.$message({ message: '修改成功', type: 'success' })
+              updateStoreTypeByStore(data).then(res => {
+                if (res.status) {
+                  this.$message({ message: '添加成功', type: 'success' })
                   this.addFenleivisible = false
                   this.getlist()
                 }
@@ -415,7 +395,6 @@ export default {
           return false
         }
       })
-      // }
     },
 
     /*
@@ -423,18 +402,17 @@ export default {
     *开发人员：LRS
     */
     remove(e) {
-      console.log(e)
       var data = {
-        categoryId: +e.id
+        id: e.id
       }
       this.$confirm('此操作将删除该分类, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        deleteCourseCategory(data).then(res => {
+        delStoreTypeByStore(data).then(res => {
           console.log(res)
-          if (+res.code === 1) {
+          if (res.status) {
             this.$message({
               type: 'success',
               message: '删除成功!'
@@ -448,172 +426,6 @@ export default {
           message: '已取消删除'
         })
       })
-    },
-
-    /*
-    *功能描述：是否显示状态
-    *开发人员：LRS
-    */
-    isUp(row) {
-      console.log(row)
-      const _this = this
-      if (!row.children) { // children不存在证明是子级
-        /*
-        *思路：循环整个数组匹配id === 当前点击列表的父级id 得到 当前点击列表父级的整条数据
-        *目的：判断父级是否是开启状态
-        */
-        const json = _this.tableData.filter(item => item.id === row.parentId)
-        if (json[0].isOpen === 0) { // 证明父级没有开启
-          this.$message({
-            message: '必须先开启父级，才能开启子级',
-            type: 'warning'
-          })
-        } else {
-          if (+row.isOpen === 1) { // 1开启状态 0关闭状态
-            const data = {
-              isOpen: 0,
-              id: row.id
-            }
-            openOrCloseCategory(data).then(res => {
-              if (+res.code === 1) {
-                _this.getlist()
-              }
-            })
-          } else {
-            const data = {
-              isOpen: 1,
-              id: row.id
-            }
-            openOrCloseCategory(data).then(res => {
-              if (+res.code === 1) {
-                _this.getlist()
-              }
-            })
-          }
-        }
-      } else { // 父级
-        if (+row.isOpen === 1) { // 1开启状态 0关闭状态
-          if (row.children.length === 0) { // 证明是一级分类
-            const data = {
-              isOpen: 0,
-              id: row.id
-            }
-            openOrCloseCategory(data).then(res => {
-              if (+res.code === 1) {
-                _this.getlist()
-              }
-            })
-          } else {
-            /*
-            *思路：循环当前子级 匹配parentId === 当前点击列表的id 得到 所有的子级数组
-            *目的：判断子级是否全部关闭
-            */
-            var json = row.children.filter(item => item.parentId === row.id)
-            console.log('111')
-            json.forEach(item => {
-              if (+item.isOpen === 1) {
-                this.$message({
-                  message: '子级必须全部关闭，才能关闭父级',
-                  type: 'warning'
-                })
-                return false
-              } else {
-                const data = {
-                  isOpen: 0,
-                  id: row.id
-                }
-                openOrCloseCategory(data).then(res => {
-                  if (+res.code === 1) {
-                    _this.getlist()
-                  }
-                })
-              }
-            })
-          }
-        } else {
-          console.log('222')
-          const data = {
-            isOpen: 1,
-            id: row.id
-          }
-          openOrCloseCategory(data).then(res => {
-            if (+res.code === 1) {
-              _this.getlist()
-            }
-          })
-        }
-      }
-    },
-
-    /*
-    *功能描述：获取图片上传凭证
-    *开发人员：LRS
-    */
-    async getPostPolicy() {
-      const req = await newGeneratePostPolicy(tracherOssImg)
-      console.log(req)
-      if (req.statusCode === '00000') {
-        this.oss.img_oss = req.data
-      }
-    },
-
-    /*
-    *功能描述：banner上传图片
-    *开发人员：LRS
-    */
-    handChange(file) {
-      const _this = this
-      if (this.oss.imageTemporaryFlag) {
-        this.oss.imageTemporaryFlag = false
-        return
-      }
-      this.oss.imageInfoFlag = false
-      const timers = new Date().getTime()
-      const index1 = file.name.lastIndexOf('.')
-      const index2 = file.name.length
-      const fileExname = file.name.substring(index1 + 1, index2)
-      const key_data = `${this.oss.img_oss.dir}${timers}.${fileExname}`
-      _this.oss.action = this.oss.img_oss.host
-      _this.oss.data = {
-        key: key_data,
-        OSSAccessKeyId: _this.oss.img_oss.accessId,
-        callback: _this.oss.img_oss.callback,
-        date: _this.oss.img_oss.date,
-        policy: _this.oss.img_oss.policy,
-        Signature: _this.oss.img_oss.signature
-      }
-      const blob = new Blob([file.raw], { type: file.raw.type })
-      this.oss.imgUrl = window.URL.createObjectURL(blob)
-    },
-
-    /*
-    *功能描述：banner上传图片成功回调
-    *开发人员：LRS
-    */
-    handSuccess(response, file, fileList) {
-      console.log(response, file, fileList)
-      if (response.statusCode === '00000') {
-        this.oss.imageInfoFlag = true
-        this.oss.imageTemporaryFlag = true
-        this.oss.imgUrl = file.response.data.permanentUrl
-        this.oss.imgId = file.response.data.id
-        console.log(this.oss.imgUrl, this.oss.imgId)
-        this.$message.success('上传成功')
-      } else {
-        this.$message.error('上传失败，请联系管理员!')
-      }
-    },
-    /*
-    *功能描述：上传服务器验证
-    *开发人员：LRS
-    */
-    async submitUpload() {
-      const _this = this
-      if (!this.oss.imgUrl) {
-        return this.$message.info('请上传banner图！')
-      }
-
-      this.$refs.upload.submit()
     },
 
     /*
@@ -642,18 +454,8 @@ export default {
       this.addEditData.sort = ''
       this.addEditData.isShow = '1'
       this.addEditData.isRecommend = '1'
-    },
-    /*
-    *功能描述：时间格式化
-    *开发人员：LRS
-    */
-    dateFormat: function(row, column) {
-      var date = row[column.property]
-      if (date === undefined) {
-        return ''
-      }
-      return moment(date).format('YYYY-MM-DD HH:mm:ss')
     }
+
   }
 }
 </script>

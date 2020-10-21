@@ -2,28 +2,36 @@
   <div class="xfjl_box shaowAll">
     <div class="toolS">
       <el-button type="primary" style="margin-bottom:20px" @click="goAdd">新增商品</el-button>
-      <!-- <p class="Ptitle">会员列表</p> -->
-      <!-- <el-form :inline="true" class="demo-form-inline">
+      <el-form :inline="true" :model="query" class="demo-form-inline">
         <el-form-item label="">
-          <el-input v-model="companyName" placeholder="请输入公司名称" />
+          <el-input v-model="query.goodsName" placeholder="请输入商品名称" />
         </el-form-item>
-        <el-form-item label="">
-          <el-input v-model="phone" placeholder="请输入手机号" />
+        <el-form-item label="" style="">
+          <el-select v-model="query.showType" placeholder="请选择" style="width:90%">
+            <el-option label="所有商品" value="0" />
+            <el-option label="已关联分类" value="1" />
+            <el-option label="未关联分类" value="2" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="">
-          <el-date-picker
-            v-model="time"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
+        <el-form-item label="" style="margin-left:-15px">
+          <el-select v-model="query.status" placeholder="请选择" style="width:90%">
+            <el-option label="请选择" value="" />
+            <el-option label="上架" value="USE" />
+            <el-option label="下架" value="STOP" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="" style="margin-left:-15px">
+          <el-cascader
+            v-model="query.goodsTypeId"
+            :options="classFyList"
           />
         </el-form-item>
 
         <el-form-item>
           <el-button type="primary" @click="sousuo">搜索</el-button>
+          <el-button type="danger" @click="clearSE">清空</el-button>
         </el-form-item>
-      </el-form> -->
+      </el-form>
     </div>
     <el-table
       v-loading="loading"
@@ -91,50 +99,11 @@
         >
           <el-table-column prop="keyName" label="属性名" />
           <el-table-column prop="valueName" label="属性值" />
-
-          <el-table-column prop="price" label="价格" width="150">
+          <el-table-column prop="price" label="价格" />
+          <el-table-column prop="discountPrice" label="优惠价" />
+          <el-table-column prop="skuImg" label="缩略图">
             <template slot-scope="scope">
-              <el-form :ref="`${scope.row.id}`" :model="scope.row" :rules="rules">
-                <el-form-item prop="price">
-                  <el-input v-model="scope.row.price" placeholder="请输入价格" />
-                </el-form-item>
-              </el-form>
-            </template>
-          </el-table-column>
-          <el-table-column prop="discountPrice" width="150" label="优惠价">
-            <template slot-scope="scope">
-              <el-form :ref="`${scope.row.id}`" :model="scope.row" :rules="rules">
-                <el-form-item prop="discountPrice">
-                  <el-input v-model="scope.row.discountPrice" placeholder="请输入优惠价格" />
-                </el-form-item>
-              </el-form>
-            </template>
-          </el-table-column>
-
-          <el-table-column width="350" prop="skuImg" label="封面图">
-            <template slot-scope="scope">
-
-              <div v-if="scope.row.id">
-                <el-upload
-                  list-type="picture-card"
-                  action
-                  :file-list="showFlie(scope.row)"
-                  :show-file-list="true"
-                  :http-request="uploadFile"
-                  accept="image/gif,image/jpeg,image/jpg,image/png,image/svg"
-                  :limit="1"
-                  :on-remove="handleRemove"
-                  :on-change="handlePreview"
-                  :on-preview="handlePictureCardPreview"
-                  :on-exceed="handleExceed"
-                >
-                  <i class="el-icon-plus" />
-                </el-upload>
-                <el-dialog :visible.sync="dialogVisibleImg">
-                  <img width="100%" :src="dialogImageUrl" alt="">
-                </el-dialog>
-              </div>
-
+              <img :src="scope.row.skuImg" alt="" width="80px" height="80px" srcset="">
             </template>
           </el-table-column>
           <el-table-column prop="status" label="状态">
@@ -149,17 +118,54 @@
           >
             <template slot-scope="scope">
               <el-button v-if="scope.row.status==='USE'" size="small" @click="downGoodsSKUAdmin(scope.row)">下架</el-button>
-              <el-button v-if="scope.row.status==='STOP'" size="small" @click="goSkuUp(scope.row)">上架</el-button>
+              <el-button v-if="scope.row.status==='STOP'" size="small" @click="goSkuUpDIGO(scope.row)">上架</el-button>
             </template>
           </el-table-column>
         </el-table>
+      </div>
+    </el-dialog>
+    <!--编辑sku值-->
+    <el-dialog
+      :title="showSkuTitle"
+      :visible.sync="dialogSKUVisible"
+      :close-on-click-modal="false"
+      width="40%"
+    >
+      <el-form v-if="dialogSKUVisible" ref="skuForm" label-width="100px" :model="skuForm" :rules="rulesSKU">
+        <el-form-item label="缩略图">
+          <el-upload
+            ref="upload"
+            list-type="picture-card"
+            action
+            :file-list="fileList"
+            :show-file-list="true"
+            :http-request="uploadFile"
+            accept="image/gif,image/jpeg,image/jpg,image/png,image/svg"
+            :limit="1"
+            :on-remove="handleRemove"
+            :on-change="handlePreview"
+            :on-exceed="handleExceed"
+          >
+            <i class="el-icon-plus" />
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="价格" prop="price">
+          <el-input v-model="skuForm.price" placeholder="请输入价格" style="width:65%" />
+        </el-form-item>
+        <el-form-item label="优惠价" prop="discountPrice">
+          <el-input v-model="skuForm.discountPrice" style="width:65%" placeholder="请输入优惠价" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogSKUVisible=false">取 消</el-button>
+        <el-button type="primary" @click="goSkuUp('skuForm')">确 定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { selectGoodsByStore, upGoodsSKUAdmin, downGoodsSKUAdmin, disableGoodsAdmin, selectSKUByStore } from '@/api/user'
+import { selectGoodsByStore, getTypeList, selectSKUByStore, upGoodsSKUAdmin, downGoodsSKUAdmin, disableGoodsAdmin } from '@/api/user'
 import { fileUpload } from '@/api/chengxu'
 export default {
 
@@ -180,6 +186,30 @@ export default {
       }
     }
     return {
+      classFyList: [],
+      query: {
+        showType: '', // 是否展示有行业类别的商品(0:全查1:有类别的,2:没有类别的)
+        goodsName: '', // 商品名称
+        status: '', // 商品状态("USE","上架","STOP","下架")
+        goodsTypeId: ''// 商品类别id
+      },
+      showSkuTitle: '', // 显示名
+      skuGoodsId: '',
+      dialogSKUVisible: false,
+      skuForm: {
+        price: '',
+        discountPrice: '',
+        skuImg: ''
+      },
+      rulesSKU: {
+        price: [
+          { required: true, validator: validatePrice, trigger: 'blur' }
+        ],
+        discountPrice: [
+          { required: true, validator: validateDiscount, trigger: 'blur' }
+        ]
+      },
+      // --------
       dialogVisibleImg: false,
       dialogImageUrl: null,
       uploadImg: null,
@@ -210,8 +240,34 @@ export default {
   },
   mounted() {
     this.getlist()
+    this.getFlList()
   },
   methods: {
+    generateRoutes(routes) {
+      const res = []
+      routes.forEach(route => {
+        const data = {
+          value: route.id,
+          label: route.name
+        }
+        if (route.children && route.children.length) {
+          data.children = this.generateRoutes(route.children)
+        }
+        res.push(data)
+      })
+      return res
+    },
+    // 列表
+    async getFlList(value) {
+      const _this = this
+      await getTypeList().then(res => {
+        console.log(res)
+        if (res.status) {
+          _this.classFyList = this.generateRoutes(res.data)
+          console.log(_this.classFyList)
+        }
+      })
+    },
     // 下架
     downGoodsSKUAdmin(row) {
       downGoodsSKUAdmin({
@@ -233,27 +289,10 @@ export default {
     handleRemove(file) {
       console.log(file)
     },
-    handlePictureCardPreview(file) {
-      this.dialogImageUrl = file.url
-      this.dialogVisibleImg = true
-    },
-    uploadFileFM(e) {
-      fileUpload(this.uploadData).then(res => {
-        if (res) {
-          this.addCommodForm.imgOne = res.data
-          this.$message({
-            message: '上传成功',
-            type: 'success'
-          })
-        } else {
-          this.$message.error(res.status)
-        }
-      })
-    },
     uploadFile(e) {
       fileUpload(this.uploadData).then(res => {
         if (res) {
-          this.uploadImg = res.data
+          this.skuForm.skuImg = res.data
           this.$message({
             message: '上传成功',
             type: 'success'
@@ -290,33 +329,38 @@ export default {
     goEdit(row) {
       this.$router.push({ path: '/platform', query: { goodsId: row.id }})
     },
-    goSkuUp(row) {
-      if (!row.discountPrice) {
-        this.$message({
-          message: '请填写价格',
-          type: 'warning'
-        })
-        return
+    goSkuUpDIGO(row) {
+      this.dialogSKUVisible = true
+      this.fileList = []
+      this.skuGoodsId = row
+      this.showSkuTitle = `上架—(${row.keyName}-${row.valueName})`
+      this.skuForm = {
+        price: row.price,
+        discountPrice: row.discountPrice,
+        skuImg: row.discountPrice
       }
-      if (!row.price) {
-        this.$message({
-          message: '请填写优惠价格',
-          type: 'warning'
+      if (row.skuImg) {
+        this.fileList.push({
+          url: row.skuImg
         })
-        return
       }
+    },
+    goSkuUp(formName) {
       const _this = this
-      this.$refs[row.id].validate((valid) => {
+      this.$refs[formName].validate((valid) => {
         if (valid) {
           upGoodsSKUAdmin({
-            discountPrice: +row.discountPrice,
-            id: row.id,
-            price: +row.price,
-            skuImg: this.uploadImg
+            discountPrice: +this.skuForm.discountPrice,
+            id: this.skuGoodsId.id,
+            price: +this.skuForm.price,
+            skuImg: this.skuForm.skuImg
           }).then(res => {
             if (res.status) {
               _this.$message({ message: '操作成功', type: 'success' })
-              _this.getSKUList(row.goodsId)
+              _this.$refs.upload.clearFiles()
+              _this.dialogSKUVisible = false
+
+              _this.getSKUList(this.skuGoodsId.goodsId)
             }
           })
         }
@@ -326,10 +370,23 @@ export default {
     goAdd(row) {
       this.$router.push({ path: '/platform' })
     },
+    clearSE() {
+      this.query = {
+        showType: '', // 是否展示有行业类别的商品(0:全查1:有类别的,2:没有类别的)
+        goodsName: '', // 商品名称
+        status: '', // 商品状态("USE","上架","STOP","下架")
+        goodsTypeId: ''// 商品类别id
+      }
+      this.getlist()
+    },
     getlist() {
       const _this = this
       _this.loading = true
       selectGoodsByStore({
+        showType: +_this.query.showType, // 是否展示有行业类别的商品(0:全查1:有类别的,2:没有类别的)
+        goodsName: _this.query.goodsName, // 商品名称
+        status: _this.query.status, // 商品状态("USE","上架","STOP","下架")
+        goodsTypeId: _this.query.goodsTypeId[_this.query.goodsTypeId.length - 1],
         current: _this.Current,
         size: _this.Size
       }).then(res => {

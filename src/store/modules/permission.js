@@ -50,9 +50,11 @@ export function filterAsyncRoutes(routes, roles) {
 export const componentsMap = {
   // 渠道商商品库
   goodsWarehouse: () => import('@/views/Platform/List'),
+  // 商品分类
+  category: () => import('@/views/Commodity/classFyList'),
 
   // globalGoodsWarehouse: () => import('@/views/power/index'), // 角色管理
-  category: () => import('@/views/Commodity/classFyList'), // 会员管理-会员列表
+  // category: () => import('@/views/Commodity/classFyList'), // 会员管理-会员列表
   // user: () => import('@/views/Notice/index'), // 资讯
   payRecord: () => import('@/views/userManager/manager'), // 角色管理
   // globalGoodsWarehouse: () => import('@/views/userManager/deployment'), // 私有化部署
