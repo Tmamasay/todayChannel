@@ -83,6 +83,23 @@ export function getTypeList(data) {
     data
   })
 }
+// 渠道商类别绑定商品(类别里面选商品)
+export function setTypeToGoodsByStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/setTypeToGoodsByStore',
+    method: 'post',
+    data
+  })
+}
+// 渠道商绑定商品类别
+export function setGoodsTypeByStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/setGoodsTypeByStore',
+    method: 'post',
+    data
+  })
+}
+
 // ================================
 // 新增渠道商
 export function addStore(data) {

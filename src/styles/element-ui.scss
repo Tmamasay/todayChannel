@@ -2,6 +2,13 @@
 .el-select .el-input.is-focus .el-input__inner {
   border-color: #00c48f !important;
 }
+.el-radio__input.is-checked .el-radio__inner{
+  border-color: #00c48f !important;
+  background: #00c48f !important;
+}
+.el-radio__input.is-checked+.el-radio__label {
+  color: #00c48f !important;
+}
 .el-upload-dragger .el-upload__text em {
   color: #00c48f !important;
 }

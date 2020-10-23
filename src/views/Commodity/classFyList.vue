@@ -1,6 +1,6 @@
 <template>
   <!-- 课程改造-分类管理 2020-8-10 LRS -->
-  <div class="fenlei_admin_box" :style="{height:bodyHeight}">
+  <div class="fenlei_admin_box shaowAll" :style="{height:bodyHeight}">
     <div class="fenlei_admin">
       <div class="top_form">
         <el-form :inline="true" size="mini">
@@ -29,7 +29,7 @@
         <el-table
           v-loading="loading"
           :data="tableData"
-          border
+          highlight-current-row
           style="height:600px;overflow: auto;"
           size="mini"
           row-key="id"
@@ -60,6 +60,7 @@
               <el-button type="text" size="mini" @click="edit(scope.row)">编辑</el-button>
               <el-button type="text" size="mini" @click="remove(scope.row)">删除</el-button>
               <el-button v-if="scope.row.children" type="text" size="mini" @click="twofenlei(scope.row)">添加二级分类</el-button>
+              <el-button v-if="scope.row.parentId" type="text" size="mini" @click="relationCourse(scope.row)">关联商品</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -84,7 +85,7 @@
           style="width:60%;margin:0 auto"
           @closed="closeDialog"
         >
-          <el-form ref="addEditData" :rules="addEditrules" :model="addEditData" label-width="100px" size="mini">
+          <el-form v-if="addFenleivisible" ref="addEditData" :rules="addEditrules" :model="addEditData" label-width="100px" size="mini">
             <el-row :gutter="10">
 
               <el-form-item label="LOGO：">
@@ -136,16 +137,108 @@
           </div>
         </el-dialog>
       </div>
+      <el-dialog
+        :title="title"
+        :visible.sync="GLClassFyvisible"
+        :close-on-click-modal="false"
+        style="width:100%;margin:0 auto"
+      >
+        <div class="toolS">
+          <el-form :inline="true" :model="query" class="demo-form-inline">
+            <el-form-item size="small" label="">
+              <el-input v-model="query.goodsName" placeholder="请输入商品名称" />
+            </el-form-item>
+            <el-form-item size="small" label="" style="">
+              <el-select v-model="query.showType" placeholder="请选择" style="width:90%">
+                <el-option label="所有商品" value="0" />
+                <el-option label="已关联分类" value="1" />
+                <el-option label="未关联分类" value="2" />
+              </el-select>
+            </el-form-item>
+            <el-form-item size="small" label="" style="margin-left:-15px">
+              <el-select v-model="query.status" placeholder="请选择" style="width:90%">
+                <el-option label="请选择" value="" />
+                <el-option label="上架" value="USE" />
+                <el-option label="下架" value="STOP" />
+              </el-select>
+            </el-form-item>
+            <el-form-item size="small" label="" style="margin-left:-15px">
+              <el-cascader
+                v-model="query.goodsTypeId"
+                :options="classFyList"
+              />
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="primary" size="small" @click="sousuo">搜索</el-button>
+              <el-button type="danger" size="small" @click="clearSE">清空搜索</el-button>
+              <el-button type="primary" size="small" @click="sureRelation">确认关联</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+        <el-table
+          ref="multipleTable"
+          v-loading="loading"
+          :data="datalist"
+          tooltip-effect="dark"
+          style="width:95%;margin:10px auto 20px auto;"
+          highlight-current-row
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column
+            type="selection"
+            width="55"
+          />
+          <el-table-column prop="imgOne" width="180" label="封面图">
+            <template slot-scope="scope">
+              <img :src="scope.row.imgOne" alt="" srcset="" width="100" height="100">
+            </template>
+          </el-table-column>
+          <el-table-column prop="goodsName" label="商品名称" />
+          <el-table-column prop="tradeName" label="所属行业" />
+          <el-table-column prop="goodsTypeName" label="行业类目" />
+          <el-table-column prop="status" label="状态">
+            <template slot-scope="scope">
+              <span v-if="scope.row.status==='USE'" class="useSign">上架中</span>
+              <span v-else-if="scope.row.status==='STOP' " class="noUseSign" type="danger">已下架</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="showPrice" label="封面价格" />
+          <el-table-column prop="remakes" label="备注" />
+          <el-table-column prop="createTime" label="创建时间" />
+        </el-table>
+        <div class="block fenye">
+          <el-pagination
+            :current-page="Current"
+            :page-sizes="[10, 20, 30, 50]"
+            :page-size="Size"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+          />
+        </div>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <script>
-import { addStoreTypeByStore, updateStoreTypeByStore, selectStoreTypeByStore, delStoreTypeByStore } from '@/api/user'
+import { addStoreTypeByStore, setTypeToGoodsByStore, selectGoodsByStore, getTypeList, updateStoreTypeByStore, selectStoreTypeByStore, delStoreTypeByStore } from '@/api/user'
 import { fileUpload } from '@/api/chengxu'
 export default {
   data() {
     return {
+      checkGoods: [], // 选中商品数组
+      checkClassFy: '', // 选中分类
+      GLClassFyvisible: false,
+      classFyList: [],
+      query: {
+        showType: '', // 是否展示有行业类别的商品(0:全查1:有类别的,2:没有类别的)
+        goodsName: '', // 商品名称
+        status: '', // 商品状态("USE","上架","STOP","下架")
+        goodsTypeId: ''// 商品类别id
+      },
       // 上传中转
       uploadData: '',
       fileList: [],
@@ -201,6 +294,107 @@ export default {
     this.getlist()
   },
   methods: {
+    handleSelectionChange(val) {
+      this.checkGoods = []
+      val.forEach(element => {
+        this.checkGoods.push(element.id)
+      })
+      // console.log(val)
+      console.log(this.checkGoods)
+    },
+    // 分页
+    handleSizeChange(val) {
+      this.Size = val
+      this.getGoodsList()
+    },
+    handleCurrentChange(val) {
+      this.Current = val
+      this.getGoodsList()
+    },
+    async sureRelation() {
+      if (!this.checkGoods.length) {
+        this.$message({ message: '请勾选需要关联的商品', type: 'warning' })
+        return
+      }
+      await setTypeToGoodsByStore({
+        goodsIds: this.checkGoods,
+        storeId: this.checkClassFy
+      }).then(res => {
+        if (res.status) {
+          this.$message({ message: res.statusMessage, type: 'success' })
+          this.$refs.multipleTable.clearSelection()
+        } else {
+          // this.$refs.multipleTable.clearSelection()
+          this.$message({ message: res.statusMessage, type: 'warning' })
+        }
+      })
+    },
+    clearSE() {
+      this.query = {
+        showType: '', // 是否展示有行业类别的商品(0:全查1:有类别的,2:没有类别的)
+        goodsName: '', // 商品名称
+        status: '', // 商品状态("USE","上架","STOP","下架")
+        goodsTypeId: ''// 商品类别id
+      }
+      this.getGoodsList()
+    },
+    // 搜索
+    sousuo() {
+      this.Current = 1
+      this.getGoodsList()
+    },
+    relationCourse(row) {
+      this.GLClassFyvisible = true
+      this.checkClassFy = row.id
+      this.getFlList()
+      this.getGoodsList()
+    },
+    getGoodsList() {
+      const _this = this
+      _this.loading = true
+      selectGoodsByStore({
+        showType: +_this.query.showType, // 是否展示有行业类别的商品(0:全查1:有类别的,2:没有类别的)
+        goodsName: _this.query.goodsName, // 商品名称
+        status: _this.query.status, // 商品状态("USE","上架","STOP","下架")
+        goodsTypeId: _this.query.goodsTypeId[_this.query.goodsTypeId.length - 1],
+        current: _this.Current,
+        size: _this.Size
+      }).then(res => {
+        console.log(res)
+        if (res.status) {
+          setTimeout(res => {
+            _this.loading = false
+          }, 300)
+          _this.datalist = res.data.records
+          _this.total = res.data.total
+        }
+      })
+    },
+    generateRoutes(routes) {
+      const res = []
+      routes.forEach(route => {
+        const data = {
+          value: route.id,
+          label: route.name
+        }
+        if (route.children && route.children.length) {
+          data.children = this.generateRoutes(route.children)
+        }
+        res.push(data)
+      })
+      return res
+    },
+    // 列表
+    async getFlList(value) {
+      const _this = this
+      await getTypeList().then(res => {
+        console.log(res)
+        if (res.status) {
+          _this.classFyList = this.generateRoutes(res.data)
+          console.log(_this.classFyList)
+        }
+      })
+    },
     // 上传------
     handleExceed(file) {
       this.$message({
@@ -268,6 +462,7 @@ export default {
     */
     addFenleipop() {
       this.title = '添加分类'
+      this.fileList = []
       this.addFenleivisible = true
       this.fenleiShow = 1
     },
@@ -280,6 +475,7 @@ export default {
       this.fenleiShow = 2
       this.title = '添加分类'
       console.log(e)
+      this.fileList = []
       // this.addEditData.twofenleiName = e.name
       this.addEditData.pid = e.id
     },
@@ -448,7 +644,7 @@ export default {
     },
     closeDialog() {
       this.addFenleivisible = false
-      this.$refs.addEditData.resetFields()
+      // this.$refs.addEditData.resetFields()
       this.addEditData.name = ''
       this.addEditData.name1 = ''
       this.addEditData.sort = ''
@@ -461,9 +657,20 @@ export default {
 </script>
 
 <style scoped>
+
 .fenlei_admin_box{
-  background: #F5F5FA;
+  /* background: #F5F5FA; */
   overflow: hidden;
+   margin:20px;
+}
+.shaowAll{
+  /* box-shadow: 2px 4px 8px 8px rgba(0, 0, 0, 0.05); */
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+  padding: 20px;
+
+}
+.el-button--text{
+color: #00c48f !important;
 }
 .fenlei_admin_box .fenlei_admin{
   background: #fff;
@@ -472,6 +679,7 @@ export default {
 }
 .page-footer{
   margin-top:20px;
+  float: right;
 }
 .border{
   display: inline-block;

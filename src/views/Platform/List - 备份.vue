@@ -87,33 +87,42 @@
       :close-on-click-modal="false"
       width="80%"
     >
-      <div v-if="dialogVisible" style=" height: 500px;overflow-y: auto;">
+      <div v-if="dialogVisible">
         <!-- <span style="font-weight: 600;">商品名称：{{ SkuList.goods.goodsName }}</span>
         <span style="font-weight: 600;padding-left:15px">封面价格：{{ SkuList.goods.showPrice }}</span> -->
-        <table className="spec-table" class="source">
-          <thead>
-            <tr class="ceTR">
-              <th v-for="item in attributeName" :key="item" class="cell">{{ item }}</th>
-              <th class="cell">价格</th>
-              <th class="cell">优惠价</th>
-              <th class="cell">缩略图</th>
-              <th class="cell">状态</th>
-              <th class="cell">操作</th>
-            </tr>
-            <tr v-for="item1 in SkuList.skuList" :key="item1">
-              <td v-for="item2 in item1.specsList" :key="item2" class="cell">{{ item2.valueName }}</td>
-              <td class="cell">{{ item1.price }}</td>
-              <td class="cell">{{ item1.discountPrice }}</td>
-              <td class="cell"><img :src="item1.skuImg" alt="" width="80px" height="80px" srcset=""></td>
-              <td class="cell"><span v-if="item1.status==='USE'" class="useSign">上架中</span>
-                <span v-else-if="item1.status==='STOP' " class="noUseSign" type="danger">已下架</span></td>
-
-              <td class="cell"><el-button v-if="item1.status==='USE'" size="small" @click="downGoodsSKUAdmin(item1)">下架</el-button>
-                <el-button v-if="item1.status==='STOP'" size="small" @click="goSkuUpDIGO(item1)">上架</el-button></td>
-            </tr>
-
-          </thead>
-        </table>
+        <el-table
+          v-loading="loading"
+          :data="SkuList.skuList"
+          tooltip-effect="dark"
+          height="600"
+          style="width:95%;margin:10px auto 20px auto;"
+          highlight-current-row
+        >
+          <el-table-column prop="keyName" label="属性名" />
+          <el-table-column prop="valueName" label="属性值" />
+          <el-table-column prop="price" label="价格" />
+          <el-table-column prop="discountPrice" label="优惠价" />
+          <el-table-column prop="skuImg" label="缩略图">
+            <template slot-scope="scope">
+              <img :src="scope.row.skuImg" alt="" width="80px" height="80px" srcset="">
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态">
+            <template slot-scope="scope">
+              <span v-if="scope.row.status==='USE'" class="useSign">上架中</span>
+              <span v-else-if="scope.row.status==='STOP' " class="noUseSign" type="danger">已下架</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="操作"
+            width="200"
+          >
+            <template slot-scope="scope">
+              <el-button v-if="scope.row.status==='USE'" size="small" @click="downGoodsSKUAdmin(scope.row)">下架</el-button>
+              <el-button v-if="scope.row.status==='STOP'" size="small" @click="goSkuUpDIGO(scope.row)">上架</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
     </el-dialog>
     <!--编辑sku值-->
@@ -201,7 +210,6 @@ export default {
       }
     }
     return {
-      attributeName: [],
       dialogCFyChangeVisible: false,
       classFyForm: {
         goodsTypeId: '',
@@ -461,14 +469,8 @@ export default {
           }, 300)
 
           _this.SkuList = res.data
-          const _NewAU = []
           _this.skuTitle = `SKU操作—${res.data.goods.goodsName}`
-
-          _this.SkuList.skuList[0].specsList.forEach(el => {
-            _NewAU.push(el.keyName)
-          })
-          console.log(_NewAU)
-          _this.attributeName = _NewAU
+          console.log(_this.SkuList)
           // _this.total = res.data.total
         }
       })
