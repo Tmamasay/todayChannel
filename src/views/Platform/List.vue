@@ -2,6 +2,7 @@
   <div class="xfjl_box shaowAll">
     <div class="toolS">
       <el-button type="primary" style="margin-bottom:20px" @click="goAdd">新增商品</el-button>
+      <el-button type="primary" style="margin-bottom:20px;margin-left:-400px" @click="importGoods">导入平台商品</el-button>
       <el-form :inline="true" :model="query" class="demo-form-inline">
         <el-form-item label="">
           <el-input v-model="query.goodsName" placeholder="请输入商品名称" />
@@ -59,7 +60,7 @@
       <el-table-column prop="createTime" label="创建时间" />
       <el-table-column
         label="操作"
-        width="300"
+        width="350"
       >
         <template slot-scope="scope">
           <el-button v-if="scope.row.status==='USE'" size="small" @click="disableGoodsAdmin(scope.row)">下架</el-button>
@@ -176,11 +177,88 @@
         <el-button type="primary" @click="sureClassFyEdit('classFyForm')">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 渠道商操作 -->
+    <el-dialog
+      title="渠道商操作"
+      :visible.sync="dialogVisible_yh"
+      :close-on-click-modal="false"
+      width="70%"
+    >
+      <div class="toolS">
+        <!-- <p v-if="checkChannel.length" style="margin-top:-20px">已选渠道商：<span class="activeCha">{{ checkChannel[0].storeName }}</span></p> -->
+        <el-form :inline="true" :model="query" class="demo-form-inline">
+          <el-form-item label="商品名">
+            <el-input v-model="queryAll.goodsName" placeholder="请输入管理员" />
+          </el-form-item>
+          <el-form-item label="所属行业">
+            <el-select v-model="queryAll.industry" placeholder="请选择" style="width:90%">
+              <el-option v-for="item in classList" :key="item.id" :label="item.tradeName" :value="item.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="searchGoods">搜索</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+      <!-- <p v-if="checkGoods.length">已选商品：<span v-for="item in checkGoods" :key="item.id" class="activeCha1">{{ item.goodsName }}</span></p> -->
+      <el-button type="primary" style="margin-bottom:20px" @click="importGoodSrue">确定分配</el-button>
+      <el-table
+        ref="multipleTable"
+        v-loading="loading"
+        :data="commList"
+        tooltip-effect="dark"
+        height="400"
+        style="width:95%;margin:10px auto 20px auto;"
+        highlight-current-row
+        @selection-change="handleSelectionGoodsChange"
+      >
+        <el-table-column
+          type="selection"
+          width="55"
+        />
+        <el-table-column prop="goodsName" width="150" label="商品名称" />
+        <el-table-column prop="imgOne" width="180" label="封面图">
+          <template slot-scope="scope">
+            <img :src="scope.row.imgOne" alt="" srcset="" width="100" height="100">
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="tradeName" label="所属行业" />
+        <el-table-column prop="goodsTypeName" label="行业类目" />
+        <el-table-column prop="status" label="状态">
+          <template slot-scope="scope">
+            <span v-if="scope.row.status==='USE'" class="useSign">上架中</span>
+            <span v-else-if="scope.row.status==='STOP' " class="noUseSign" type="danger">已下架</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="showPrice" label="封面价格" />
+        <el-table-column prop="remakes" label="备注" />
+        <el-table-column prop="createTime" width="150" label="创建时间" />
+        <el-table-column
+          label="操作"
+        >
+          <!-- <template slot-scope="scope">
+            <el-button size="small" @click="goSkuEdit(scope.row)">SKU管理</el-button>
+          </template> -->
+        </el-table-column>
+      </el-table>
+      <div class="block fenye">
+        <el-pagination
+          :current-page="Current"
+          :page-sizes="[10, 20, 30, 50]"
+          :page-size="Size"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="commTotal"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { selectGoodsByStore, setGoodsTypeByStore, getTypeList, selectSKUByStore, upGoodsSKUAdmin, downGoodsSKUAdmin, disableGoodsAdmin } from '@/api/user'
+import { selectGoodsByStore, selectGoodsByAdmin, getTradeList, setGoodsTypeByStore, getTypeList, selectSKUByStore, setGoodsPriceByStore, downSkuByStore, disableGoodsAdmin } from '@/api/user'
 import { fileUpload } from '@/api/chengxu'
 export default {
 
@@ -201,6 +279,18 @@ export default {
       }
     }
     return {
+      queryAll: {
+        goodsName: '',
+        industry: ''
+      },
+      commList: [],
+      commTotal: [], // 总数
+      classList: [],
+      checkChannel: [], // 选中渠道商
+      checkGoods: [], // 选中商品
+      dialogVisible_yh: false,
+
+      // =========
       attributeName: [],
       dialogCFyChangeVisible: false,
       classFyForm: {
@@ -269,6 +359,77 @@ export default {
     this.getFlList()
   },
   methods: {
+    handleSelectionGoodsChange(val) {
+      this.checkGoods = val
+      console.log(val)
+    },
+    async importGoodSrue() {
+      if (!this.checkGoods.length) {
+        this.$message({ message: '请勾选需要导入的商品', type: 'warning' })
+        return
+      }
+      const listId = []
+      this.checkGoods.forEach(element => {
+        listId.push(element.id)
+      })
+      await issueGoodsToStore({
+        goodsIds: listId,
+        storeId: this.checkChannel[0].id
+      }).then(res => {
+        if (res.status) {
+          this.$message({ message: res.statusMessage, type: 'success' })
+          this.$refs.multipleTable1.clearSelection()
+          this.$refs.multipleTable.clearSelection()
+        } else {
+          this.$refs.multipleTable1.clearSelection()
+          this.$refs.multipleTable.clearSelection()
+          this.$message({ message: res.statusMessage, type: 'warning' })
+        }
+      })
+    },
+    // 搜索
+    searchGoods() {
+      this.Current = 1
+      this.getGoodsList()
+    },
+    importGoods() {
+      this.dialogVisible_yh = true
+      this.getClassList()
+      this.getGoodsList()
+    },
+    getGoodsList() {
+      const _this = this
+      _this.loading = true
+      selectGoodsByAdmin({
+        goodsName: _this.queryAll.goodsName,
+        tradeId: _this.queryAll.industry,
+        current: _this.Current,
+        size: _this.Size
+      }).then(res => {
+        console.log(res)
+        if (res.status) {
+          setTimeout(res => {
+            _this.loading = false
+          }, 300)
+          _this.commList = res.data.records
+          _this.commTotal = res.data.total
+        }
+      })
+    },
+    async getClassList() {
+      const _this = this
+
+      _this.loading = true
+      await getTradeList().then(res => {
+        console.log(res)
+        if (res.status) {
+          setTimeout(res => {
+            _this.loading = false
+          }, 300)
+          _this.classList = res.data
+        }
+      })
+    },
     sureClassFyEdit(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
@@ -318,7 +479,7 @@ export default {
     },
     // 下架
     downGoodsSKUAdmin(row) {
-      downGoodsSKUAdmin({
+      downSkuByStore({
         id: row.id
         // tradeName: row.tradeName
       }).then(res => {
@@ -397,7 +558,7 @@ export default {
       const _this = this
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          upGoodsSKUAdmin({
+          setGoodsPriceByStore({
             discountPrice: +this.skuForm.discountPrice,
             id: this.skuGoodsId.id,
             price: +this.skuForm.price,
@@ -523,6 +684,26 @@ export default {
 </script>
 
 <style scoped>
+.source{
+  padding: 24px;
+  border: 1px solid #ebebeb;
+    border-radius: 3px;
+    transition: .2s;
+
+}
+.cell{
+  height: 90px;
+ border-bottom: 1px solid #ebeef5;
+      display: inline-block;
+    box-sizing: border-box;
+    position: relative;
+    vertical-align: middle;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 120px;
+    text-align: center;
+    line-height: 90px;
+}
 .useSign{
 
   padding: 5px 8px;

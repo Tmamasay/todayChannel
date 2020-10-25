@@ -229,6 +229,7 @@ import { fileUpload } from '@/api/chengxu'
 export default {
   data() {
     return {
+      datalist: [],
       checkGoods: [], // 选中商品数组
       checkClassFy: '', // 选中分类
       GLClassFyvisible: false,
@@ -251,6 +252,8 @@ export default {
       tableData: [], // 表格数据
       loading: false, // 表格loding加载
       fenleiShow: 1, // 一级二级分类隐藏显示:1：一级 2:二级
+      Current: 0, // 页码
+      Size: 10, // 一页10条数据
       current: 0, // 页码
       size: 10, // 一页10条数据
       total: 0, // 数据总条数
@@ -318,7 +321,7 @@ export default {
       }
       await setTypeToGoodsByStore({
         goodsIds: this.checkGoods,
-        storeId: this.checkClassFy
+        goodsTypeId: this.checkClassFy
       }).then(res => {
         if (res.status) {
           this.$message({ message: res.statusMessage, type: 'success' })

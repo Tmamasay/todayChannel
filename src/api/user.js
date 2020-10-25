@@ -18,10 +18,18 @@ export function getMyMenus(data) {
     data
   })
 }
-// 分页管理端商品
+// 分页渠道管理端商品
 export function selectGoodsByStore(data) {
   return request({
     url: '/store/storeGoodsManager/selectGoodsByStore',
+    method: 'post',
+    data
+  })
+}
+// 分页平台管理端商品
+export function selectGoodsByAdmin(data) {
+  return request({
+    url: '/admin/goodsManager/selectGoodsByAdmin',
     method: 'post',
     data
   })
@@ -30,14 +38,6 @@ export function selectGoodsByStore(data) {
 export function selectSKUByStore(data) {
   return request({
     url: '/store/storeGoodsManager/selectSKUByStore',
-    method: 'post',
-    data
-  })
-}
-// 渠道商设置商品价格以及库存同时上架
-export function setGoodsPriceByStore(data) {
-  return request({
-    url: '/store/storeGoodsManager/setGoodsPriceByStore',
     method: 'post',
     data
   })
@@ -100,11 +100,43 @@ export function setGoodsTypeByStore(data) {
   })
 }
 
-// ================================
-// 新增渠道商
-export function addStore(data) {
+// 渠道商查询自己的商品详情
+export function getStoreGoodsToStore(data) {
   return request({
-    url: '/admin/storeManager/addStore',
+    url: '/store/storeGoodsManager/getStoreGoodsToStore',
+    method: 'post',
+    data
+  })
+}
+// 渠道商修改自己的商品
+export function updateGoodsToStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/updateGoodsToStore',
+    method: 'post',
+    data
+  })
+}
+
+// 渠道商新增自己的商品
+export function addStoreGoodsToStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/addStoreGoodsToStore',
+    method: 'post',
+    data
+  })
+}
+// 渠道商设置商品价格以及库存同时上架
+export function setGoodsPriceByStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/setGoodsPriceByStore',
+    method: 'post',
+    data
+  })
+}
+// 渠道商下架SKU
+export function downSkuByStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/downSkuByStore',
     method: 'post',
     data
   })
@@ -117,6 +149,17 @@ export function getTradeList(data) {
     data
   })
 }
+
+// ================================
+// 新增渠道商
+export function addStore(data) {
+  return request({
+    url: '/admin/storeManager/addStore',
+    method: 'post',
+    data
+  })
+}
+
 // 新增渠道商判断某些信息是否重复
 export function checkAddStore(data) {
   return request({

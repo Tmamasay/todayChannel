@@ -58,11 +58,11 @@
           <el-form-item label="商品名" prop="goodsName">
             <el-input v-model="addCommodForm.goodsName" placeholder="请输入摘要" />
           </el-form-item>
-          <el-form-item label="所属行业" prop="industry">
+          <!-- <el-form-item label="所属行业" prop="industry">
             <el-select v-model="addCommodForm.industry" placeholder="请选择" style="width:90%" @change="tradeNaChange">
               <el-option v-for="item in classList" :key="item.id" :label="item.tradeName" :value="item.id" />
             </el-select>
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item label="行业类目" prop="goodsTypeId">
             <el-cascader
               v-model="addCommodForm.goodsTypeId"
@@ -171,7 +171,7 @@
 
 <script>
 import { fileUpload } from '@/api/chengxu'
-import { getTradeList, updateGoodsByAdmin, getGoodsTypeByAdmin, getGoodsOneByAdmin, addGoodsByAdmin } from '@/api/user'
+import { getTradeList, updateGoodsToStore, getTypeList, getStoreGoodsToStore, addStoreGoodsToStore } from '@/api/user'
 import EditorImage from '@/components/Tinymce/index' // 富文本编辑
 export default {
   components: { EditorImage },
@@ -278,9 +278,36 @@ export default {
       this.getlist(this.$route.query.goodsId)
     }
 
-    this.getClassList()
+    // this.getClassList()
+    this.getFlList()
   },
   methods: {
+    arrp(arr) {
+    // 编辑原数组格式
+      if (arr[0].attributeValue) {
+        arr = arr.map((item) => {
+          item = item.attributeValue
+          return item
+        })
+      }
+      if (arr.length === 1) {
+        // 最终合并成一个
+        return arr[0]
+      } else {	// 有两个子数组就合并
+        const arrySon = []
+        // 将组合放到新数组中
+        arr[0].forEach((_, index) => {
+          arr[1].forEach((_, index1) => {
+            arrySon.push([].concat(arr[0][index], arr[1][index1]))
+          })
+        })
+        // 新数组并入原数组,去除合并的前两个数组
+        arr[0] = arrySon
+        arr.splice(1, 1)
+        // 递归
+        return this.arrp(arr)
+      }
+    },
     generateRoutes(routes) {
       const res = []
       routes.forEach(route => {
@@ -295,9 +322,9 @@ export default {
       })
       return res
     },
-    tradeNaChange(value) {
-      this.getFlList(value)
-    },
+    // tradeNaChange(value) {
+    //   this.getFlList(value)
+    // },
     async getClassList() {
       const _this = this
 
@@ -313,16 +340,13 @@ export default {
       })
     },
     // 列表
-    async getFlList(value) {
+    async getFlList() {
       const _this = this
-      var data = {
-        // tradeId: this.$route.query.tradeId
-        tradeId: value
-      }
-      await getGoodsTypeByAdmin(data).then(res => {
+
+      await getTypeList().then(res => {
         console.log(res)
         if (res.status) {
-          _this.classFyList = this.generateRoutes(res.data.children)
+          _this.classFyList = this.generateRoutes(res.data)
           console.log(_this.classFyList)
         }
       })
@@ -533,7 +557,7 @@ export default {
       var data = {
         id: id
       }
-      await getGoodsOneByAdmin(data).then(res => {
+      await getStoreGoodsToStore(data).then(res => {
         console.log(res)
         if (res.status) {
           this.dynamicTags = []
@@ -560,7 +584,7 @@ export default {
           this.fileList.push({
             url: res.data.goods.imgOne
           })
-          res.data.keyValus.forEach(element => {
+          res.data.skus.forEach(element => {
             this.GuienamicTags.push(element.keyName)
             const _Floy = {
               attributeKey: '',
@@ -568,7 +592,7 @@ export default {
             }
             element.values.forEach(el => {
               _Floy.attributeKey = element.keyName
-              _Floy.attributeValue.push(el.valueName)
+              _Floy.attributeValue.push(el)
             })
             this.SpecnamicTags.push(_Floy)
             this.addCommodForm.attributes = this.SpecnamicTags
@@ -590,7 +614,8 @@ export default {
         if (valid) {
           const data = {
             id: this.addCommodForm.id || null,
-            attributes: this.addCommodForm.attributes,
+            attributes: this.arrp(this.addCommodForm.attributes),
+            attributeName: this.GuienamicTags,
             goodsDetails: this.addCommodForm.goodsDetails,
             goodsName: this.addCommodForm.goodsName,
             goodsTypeId: typeof (this.addCommodForm.goodsTypeId) === 'string' ? this.addCommodForm.goodsTypeId : this.addCommodForm.goodsTypeId[this.addCommodForm.goodsTypeId.length - 1],
@@ -615,7 +640,7 @@ export default {
             //   showPrice: +this.addCommodForm.showPrice,
             //   status: this.addCommodForm.status
             // }
-            updateGoodsByAdmin(data).then(res => {
+            updateGoodsToStore(data).then(res => {
               if (res.status) {
                 this.$message({
                   message: '操作成功',
@@ -625,7 +650,7 @@ export default {
               }
             })
           } else {
-            addGoodsByAdmin(data).then(res => {
+            addStoreGoodsToStore(data).then(res => {
               if (res.status) {
                 this.$message({
                   message: '操作成功',
