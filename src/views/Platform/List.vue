@@ -200,7 +200,14 @@
           </el-form-item>
         </el-form>
       </div>
+      <span>指定分类：</span>
+      <el-cascader
+        v-model="checkChannel"
+        :options="classFyList"
+      />
+
       <!-- <p v-if="checkGoods.length">已选商品：<span v-for="item in checkGoods" :key="item.id" class="activeCha1">{{ item.goodsName }}</span></p> -->
+
       <el-button type="primary" style="margin-bottom:20px" @click="importGoodSrue">确定分配</el-button>
       <el-table
         ref="multipleTable"
@@ -258,7 +265,7 @@
 </template>
 
 <script>
-import { selectGoodsByStore, selectGoodsByAdmin, getTradeList, setGoodsTypeByStore, getTypeList, selectSKUByStore, setGoodsPriceByStore, downSkuByStore, disableGoodsAdmin } from '@/api/user'
+import { selectGoodsByStore, pullGoodsToStore, selectGoodsByAdmin, getTradeList, setGoodsTypeByStore, getTypeList, selectSKUByStore, setGoodsPriceByStore, downSkuByStore, disableGoodsAdmin } from '@/api/user'
 import { fileUpload } from '@/api/chengxu'
 export default {
 
@@ -368,13 +375,17 @@ export default {
         this.$message({ message: '请勾选需要导入的商品', type: 'warning' })
         return
       }
+      if (!this.checkChannel.length) {
+        this.$message({ message: '请选择关联分类', type: 'warning' })
+        return
+      }
       const listId = []
       this.checkGoods.forEach(element => {
         listId.push(element.id)
       })
-      await issueGoodsToStore({
-        goodsIds: listId,
-        storeId: this.checkChannel[0].id
+      await pullGoodsToStore({
+        ids: listId,
+        goodsTypeId: this.checkChannel[this.checkChannel.length - 1] || null
       }).then(res => {
         if (res.status) {
           this.$message({ message: res.statusMessage, type: 'success' })

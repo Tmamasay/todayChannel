@@ -150,6 +150,15 @@ export function getTradeList(data) {
   })
 }
 
+// 获取行业类别下拉
+export function pullGoodsToStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/pullGoodsToStore',
+    method: 'post',
+    data
+  })
+}
+
 // ================================
 // 新增渠道商
 export function addStore(data) {
