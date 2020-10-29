@@ -557,7 +557,7 @@ export default {
       this.skuForm = {
         price: row.price,
         discountPrice: row.discountPrice,
-        skuImg: row.discountPrice
+        skuImg: row.skuImg
       }
       if (row.skuImg) {
         this.fileList.push({
