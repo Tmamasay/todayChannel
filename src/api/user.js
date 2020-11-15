@@ -34,6 +34,14 @@ export function selectGoodsByAdmin(data) {
     data
   })
 }
+// 渠道商设置商品库存
+export function setGoodsNumByStore(data) {
+  return request({
+    url: '/store/storeGoodsManager/setGoodsNumByStore',
+    method: 'post',
+    data
+  })
+}
 // 渠道商通过商品id查询商品sku
 export function selectSKUByStore(data) {
   return request({
@@ -327,3 +335,4 @@ export function issueGoodsToStore(data) {
     data
   })
 }
+

@@ -111,6 +111,7 @@
 
               <td class="cell"><el-button v-if="item1.status==='USE'" size="small" @click="downGoodsSKUAdmin(item1)">下架</el-button>
                 <el-button v-if="item1.status==='STOP'" size="small" @click="goSkuUpDIGO(item1)">上架</el-button></td>
+                <td><el-button size="small" @click="goSkuSet(item1)">库存管理</el-button></td>
             </tr>
 
           </thead>
@@ -154,7 +155,7 @@
         <el-button type="primary" @click="goSkuUp('skuForm')">确 定</el-button>
       </div>
     </el-dialog>
-    <!--编辑sku值-->
+    <!--分类修改-->
     <el-dialog
       title="分类修改"
       :visible.sync="dialogCFyChangeVisible"
@@ -177,6 +178,24 @@
         <el-button type="primary" @click="sureClassFyEdit('classFyForm')">确 定</el-button>
       </div>
     </el-dialog>
+    <!--编辑sku值-->
+    <el-dialog
+      title="库存管理"
+      :visible.sync="dialogKUcChangeVisible"
+      :close-on-click-modal="false"
+      width="40%"
+    >
+      <el-form v-if="dialogKUcChangeVisible" ref="classFyForm" label-width="100px" :model="kCNum">
+        <el-form-item label="库存增减值">
+           <el-input v-model="kCNum" placeholder="加减库存默认为0,加库存传整数,减库存传负数" />
+        </el-form-item>
+     
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogKUcChangeVisible=false">取 消</el-button>
+        <el-button type="primary" @click="makeSureKC">确 定</el-button>
+      </div>
+    </el-dialog>
     <!-- 渠道商操作 -->
     <el-dialog
       title="渠道商操作"
@@ -188,7 +207,7 @@
         <!-- <p v-if="checkChannel.length" style="margin-top:-20px">已选渠道商：<span class="activeCha">{{ checkChannel[0].storeName }}</span></p> -->
         <el-form :inline="true" :model="query" class="demo-form-inline">
           <el-form-item label="商品名">
-            <el-input v-model="queryAll.goodsName" placeholder="请输入管理员" />
+            <el-input v-model="queryAll.goodsName" placeholder="请输入商品名" />
           </el-form-item>
           <el-form-item label="所属行业">
             <el-select v-model="queryAll.industry" placeholder="请选择" style="width:90%">
@@ -265,7 +284,7 @@
 </template>
 
 <script>
-import { selectGoodsByStore, pullGoodsToStore, selectGoodsByAdmin, getTradeList, setGoodsTypeByStore, getTypeList, selectSKUByStore, setGoodsPriceByStore, downSkuByStore, disableGoodsAdmin } from '@/api/user'
+import { selectGoodsByStore,setGoodsNumByStore, pullGoodsToStore, selectGoodsByAdmin, getTradeList, setGoodsTypeByStore, getTypeList, selectSKUByStore, setGoodsPriceByStore, downSkuByStore, disableGoodsAdmin } from '@/api/user'
 import { fileUpload } from '@/api/chengxu'
 export default {
 
@@ -286,6 +305,9 @@ export default {
       }
     }
     return {
+      dialogKUcChangeVisible:false,// 库存管理
+      kcSkuId:'',// 操作库存的sku id
+      kCNum:0,// 库存变化值 +加 -减
       queryAll: {
         goodsName: '',
         industry: ''
@@ -366,6 +388,19 @@ export default {
     this.getFlList()
   },
   methods: {
+   async makeSureKC(){
+      await setGoodsNumByStore({
+       id: this.kcSkuId,
+	     stockNumber: +this.kCNum
+      }).then(res => {
+        if (res.status) {
+            this.$message({ message: '操作成功', type: 'success' })
+            this.getSKUList(this.skuGoodsId.goodsId)
+        }
+      })
+
+
+    },
     handleSelectionGoodsChange(val) {
       this.checkGoods = val
       console.log(val)
@@ -549,6 +584,11 @@ export default {
     goEdit(row) {
       this.$router.push({ path: '/platform', query: { goodsId: row.id }})
     },
+    //设置库存
+    goSkuSet(item){
+      this.kcSkuId=item.id
+      this.dialogKUcChangeVisible=true
+    },
     goSkuUpDIGO(row) {
       this.dialogSKUVisible = true
       this.fileList = []
@@ -711,7 +751,7 @@ export default {
     vertical-align: middle;
     padding-left: 10px;
     padding-right: 10px;
-    width: 120px;
+    width: 150px;
     text-align: center;
     line-height: 90px;
 }
