@@ -1,474 +1,366 @@
 <template>
-  <div class="xfjl_box shaowAll">
-    <div class="toolS">
-      <el-button type="primary" style="margin-bottom:20px" @click="addZx">新增渠道商</el-button>
-      <el-form :inline="true" class="demo-form-inline">
-        <el-form-item label="">
-          <el-input v-model="userName" placeholder="请输入管理员" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="sousuo">搜索</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
-    <el-table
-      v-loading="loading"
-      :data="datalist"
-      tooltip-effect="dark"
-      style="width:95%;margin:10px auto 20px auto;"
-      highlight-current-row
-    >
-      <el-table-column
-        type="index"
-        width="50"
-        label="序号"
-      />
-      <!-- <el-table-column prop="createTime" width="180" label="添加时间">
-        <template slot-scope="scope">
-          {{ formatDate(scope.row.createTime) }}
-        </template>
-      </el-table-column> -->
-      <el-table-column prop="storeName" label="渠道商名称" />
-      <el-table-column prop="tradeType" label="行业" />
-      <el-table-column prop="storeLevel" label="等级" />
-      <el-table-column prop="status" label="状态">
-        <template slot-scope="scope">
-          <span v-if="scope.row.status==='USE'" class="useSign">使用中</span>
-          <span v-else-if="scope.row.status==='STOP' " class="noUseSign" type="danger">已禁用</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="rate" label="手续费率">
-        <template slot-scope="scope">
-          {{ (scope.row.rate/100).toFixed(2) }}%
-        </template>
-      </el-table-column>
-      <el-table-column prop="storeRealName" label="实体店名字" />
-      <el-table-column prop="storeAddress" label="实体店地址" />
-      <el-table-column prop="userName" label="联系人" />
-      <el-table-column prop="mobile" label="联系电话" />
-      <el-table-column prop="createTime" width="150" label="创建时间" />
-      <el-table-column
-        label="编辑"
-      >
-        <template slot-scope="scope">
-          <span style="color:#00c48f;cursor: pointer;" @click="goEdit(scope.row)">编辑</span>
-          <!-- <span style="color:#00c48f;cursor: pointer;" @click="goEdit(scope.row)">充值</span> -->
-          <span v-if="scope.row.status==='USE'" style="color:red;cursor: pointer;padding-left:10px" @click="removeZX(scope.row)">冻结</span>
-          <span v-if="scope.row.status==='STOP'" style="color:#00c48f;cursor: pointer;padding-left:10px" @click="removeZX(scope.row)">解冻</span>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="block fenye">
-      <el-pagination
-        :current-page="Current"
-        :page-sizes="[10, 20, 30, 50]"
-        :page-size="Size"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
-    <!-- 渠道商操作 -->
-    <el-dialog
-      title="渠道商操作"
-      :visible.sync="dialogVisible_yh"
-      :close-on-click-modal="false"
-      width="40%"
-    >
-      <el-form v-if="dialogVisible_yh" ref="yhData" label-position="right" :inline="true" label-width="120px" :model="yhData" :rules="rulesyh">
-        <el-form-item label="渠道商名称" prop="name">
-          <el-input v-model="yhData.name" placeholder="请输入渠道商名称" />
-        </el-form-item>
-        <el-form-item label="渠道商账号" prop="account">
-          <el-input v-model="yhData.account" placeholder="请输入渠道商账号" />
-        </el-form-item>
-        <el-form-item label="行业类别" prop="industry">
-          <el-select v-model="yhData.industry" placeholder="请选择" style="width:90%">
-            <el-option v-for="item in options" :key="item.id" :label="item.tradeName" :value="item.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="渠道商等级" prop="grade" style="margin-left:-15px">
-          <el-select v-model="yhData.grade" placeholder="请选择" style="width:90%">
-            <el-option label="V1" value="1" />
-            <el-option label="V2" value="2" />
-            <el-option label="V3" value="3" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="实体店名称" prop="entityName">
-          <el-input v-model="yhData.entityName" placeholder="请输入实体店名" />
-        </el-form-item>
-        <el-form-item label="实体店地址" prop="entityAdress">
-          <!-- <textarea v-model="yhData.entityAdress" style="border:1px solid #DCDFE6" placeholder="请输入实体店地址" cols="30" rows="4" /> -->
-          <el-input v-model="yhData.entityAdress" placeholder="请输入实体店地址" />
-        </el-form-item>
-        <el-form-item label="联系人" prop="contacts">
-          <el-input v-model="yhData.contacts" placeholder="请输入联系人" />
-        </el-form-item>
-        <el-form-item label="联系电话" prop="phone">
-          <el-input v-model="yhData.phone" placeholder="请输入联系电话" />
-        </el-form-item>
-        <el-form-item label="手续费率" prop="fee">
-          <el-input v-model="yhData.fee" placeholder="请输入手续费率（最低千分之六）" />
-        </el-form-item>
-        <el-form-item v-if="!yhData.id" label="登录密码" prop="password">
-          <el-input v-model="yhData.password" type="password" placeholder="请输入登录密码" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible_yh=false">取 消</el-button>
-        <el-button type="primary" @click="addUser('yhData')">确 定</el-button>
+  <!--  2020-8-10 LRS -->
+  <div class="fenlei_admin_box shaowAll" :style="{height:bodyHeight}">
+    <div class="fenlei_admin">
+      <div class="top_form">
+        <el-form :inline="true" size="mini">
+          <el-form-item label="轮播名称：">
+            <el-input v-model="searchData.name_value" placeholder="请输入轮播名称" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" size="mini" icon="el-icon-search" @click="search">搜索</el-button>
+            <el-button type="primary" size="mini" icon="el-icon-plus" @click="addFenleipop">添加轮播</el-button>
+          </el-form-item>
+        </el-form>
       </div>
-    </el-dialog>
+      <div class="list_box">
+        <el-table
+          v-loading="loading"
+          :data="tableData"
+          highlight-current-row
+          style="height:600px;overflow: auto;"
+          size="mini"
+        >
+          <el-table-column prop="imgName" label="轮播名称" />
+          <el-table-column prop="imgColour" label="轮播颜色" />
+          <el-table-column prop="sort" label="排序" align="center">
+            <template slot-scope="scope">
+              {{ scope.row.orderNum }}
+            </template>
+          </el-table-column>
+          <!-- <el-table-column prop="updateName" label="编辑者" align="center" /> -->
+          <el-table-column prop="createTime" label="编辑时间" align="center" />
+          <el-table-column prop="operation" label="操作" align="center">
+            <template slot-scope="scope">
+              <el-button type="text" size="mini" @click="edit(scope.row)">编辑</el-button>
+              <el-button type="text" size="mini" @click="remove(scope.row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-row>
+          <el-pagination
+            class="page-footer"
+            :current-page="current"
+            :page-sizes="[10, 20, 30, 50]"
+            :page-size="size"
+            :total="total"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="pageSizeChange"
+            @current-change="currentPageChange"
+          />
+        </el-row>
+      </div>
+      <div class="add_fenlei">
+        <el-dialog
+          :title="title"
+          :visible.sync="addFenleivisible"
+          :close-on-click-modal="false"
+          style="width:60%;margin:0 auto"
+        >
+          <el-form v-if="addFenleivisible" ref="addEditData" :rules="addEditrules" :model="addEditData" label-width="100px" size="mini">
+            <el-form-item label="名称：" style="line-height:60px" prop="voucherName">
+              <el-input v-model="addEditData.voucherName" placeholder="请输入名称" style="width:100%;" />
+            </el-form-item>
+            
+            <el-form-item label="购物券类型" style="line-height:60px" prop="type">
+             <el-select v-model="addEditData.type" placeholder="请选择">
+                <el-option  label="满减" value="man_jian" />
+                <el-option  label="折扣" value="ze_kou" />
+          
+              </el-select>
+            </el-form-item>
+            <el-form-item label="小标题：" style="line-height:60px" prop="title">
+              <el-input v-model="addEditData.title" placeholder="请输入小标题" style="width:100%;" />
+            </el-form-item>
+             <el-form-item label="详情：" style="line-height:60px" prop="content">
+              <el-input v-model="addEditData.content" placeholder="请输入详情（折扣使用介绍）" style="width:100%;" />
+            </el-form-item>
+             <el-form-item label="条件：" style="line-height:60px" prop="condition">
+              <el-input v-model="addEditData.conditionTxt" placeholder="满多少使用" style="width:100%;" />
+            </el-form-item>
+              <el-form-item label="条件价格：" style="line-height:60px" prop="conditionAmount">
+              <el-input v-model="addEditData.conditionAmount" placeholder="达标金额（满多少）" style="width:100%;" />
+            </el-form-item>
+             <el-form-item label="数值：" style="line-height:60px" prop="amount">
+              <el-input v-model="addEditData.amount" placeholder="折扣数值" style="width:100%;" />
+            </el-form-item>
+              <el-form-item label="是否长期：" style="line-height:60px" prop="validityStatus">
+               <el-select v-model="addEditData.validityStatus" placeholder="请选择">
+                <el-option  label="有效期" value="0" />
+                <el-option  label="永久" value="1" />
+                <el-option  label="过期" value="2" />
+              </el-select>
+            </el-form-item>
+              <el-form-item v-if="+addEditData.validityStatus===0" label="开始使用时间：" style="line-height:60px" prop="startUseTime">    
+            <el-date-picker
+              v-model="addEditData.startUseTime"
+             type="datetime"
+             format="yyyy-MM-dd HH:mm:ss"
+             value-format="yyyy-MM-dd HH:mm:ss"
+              unlink-panels
+              placeholder="开始使用时间"
+            />
+              <!-- <el-input v-model="addEditData.startUseTime" placeholder="开始使用时间" style="width:100%;" /> -->
+            </el-form-item>
+              <el-form-item v-if="+addEditData.validityStatus===0" label="有效期至：" style="line-height:60px" prop="validityTime">
+                <el-date-picker
+              v-model="addEditData.validityTime"
+             type="datetime"
+              format="yyyy-MM-dd HH:mm:ss"
+              value-format="yyyy-MM-dd HH:mm:ss"
+              unlink-panels
+              placeholder="有效期至"
+            />
+              <!-- <el-input v-model="addEditData.validityTime" placeholder="有效期至" style="width:100%;" /> -->
+            </el-form-item>
+          </el-form>
+          <div class="el-center">
+            <el-button type="primary" size="mini" @click="onSubmit('addEditData')">提交</el-button>
+            <el-button size="mini" plain @click="addFenleivisible=false">取消</el-button>
+          </div>
+        </el-dialog>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { addStore, getTradeList, checkAddStore, selectStoreList, disableStoreOne, getStoreOne, updateStoreOne } from '@/api/user'
-// import { ttyMD5 } from '@/utils'
+import { selectVoucherByStore, addVoucherByStore, updateVoucherByStore, delVoucherByStore } from '@/api/user'
+import { fileUpload } from '@/api/chengxu'
 export default {
   data() {
-    const validatePhone = (rule, value, callback) => {
-      const reg = /^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\d{8}$/
-      const ss = reg.test(value)
-      if (!value) {
-        callback(new Error('请输入手机号码'))
-      } else if (!ss) {
-        callback(new Error('手机号码格式错误'))
-      } else {
-        callback()
-      }
-    }
-    const validateLoginName = async(rule, value, callback) => {
-      if (!this.yhData.id) {
-        const { data } = await checkAddStore({ loginName: value })
-        if (!value) {
-          callback(new Error('请输入渠道商账号'))
-        } else if (!data) {
-          callback(new Error('渠道商账号已存在'))
-        } else {
-          callback()
-        }
-      } else {
-        if (!value) {
-          callback(new Error('请输入渠道商账号'))
-        } else {
-          callback()
-        }
-      }
-    }
-    const validateStoreName = async(rule, value, callback) => {
-      if (!this.yhData.id) {
-        const { data } = await checkAddStore({ storeName: value })
-        if (!value) {
-          callback(new Error('请输入渠道商名称'))
-        } else if (!data) {
-          callback(new Error('渠道商名称已存在'))
-        } else {
-          callback()
-        }
-      } else {
-        if (!value) {
-          callback(new Error('请输入渠道商名称'))
-        } else {
-          callback()
-        }
-      }
-    }
-    const validateStoreRealName = async(rule, value, callback) => {
-      if (!this.yhData.id) {
-        const { data } = await checkAddStore({ storeRealName: value })
-        if (!value) {
-          callback(new Error('请输入实体店铺名称'))
-        } else if (!data) {
-          callback(new Error('实体店铺名称已存在'))
-        } else {
-          callback()
-        }
-      } else {
-        if (!value) {
-          callback(new Error('请输入实体店铺名称'))
-        } else {
-          callback()
-        }
-      }
-    }
     return {
-      userName: '',
-      options: [],
-      dialogVisible_yh: false,
-      yhData: {
-        name: '', // 渠道商名称
-        account: '', // 账号
-        industry: '', // 行业
-        grade: '', // 等级
-        entityName: '', // 实体店名字
-        entityAdress: '', // 实体店地址
-        contacts: '', // 联系人
-        phone: '', // 联系电话
-        fee: '', // 手续费率
-        password: '' // 登陆密码
-        // businessLicense: '', // 营业执照
-        // licence: '', // 许可证
+      datalist: [],
+      checkGoods: [], // 选中商品数组
+      checkClassFy: '', // 选中分类
+      // 上传中转
+      uploadData: '',
+      bodyHeight: '', // 获取浏览器的高度，背景色
+      searchData: {// 搜索数据
+        name_value: '', // 分类名称
+        date_value: '' // 编辑时间
       },
-      rulesyh: {
-        name: [
-          { required: true, trigger: 'blur', validator: validateStoreName }
+      tableData: [], // 表格数据
+      loading: false, // 表格loding加载
+      fenleiShow: 1, // 一级二级分类隐藏显示:1：一级 2:二级
+      Current: 0, // 页码
+      Size: 10, // 一页10条数据
+      current: 0, // 页码
+      size: 10, // 一页10条数据
+      total: 0, // 数据总条数
+      addFenleivisible: false, // 新增分类、编辑弹出框
+      title: '', // 新增分类、编辑名字
+      addEditData: {// 新增、编辑字段
+        voucherName:"",//名称
+        title: '', // 标题
+        type: '', // 购物券类型
+        content: '',	// 详情
+        conditionTxt: '',	// 条件
+        amount: '',	// 数值
+        conditionAmount: '',	// 条件价格
+        // unit: '',	// 单位
+        validityStatus: '0',	// 是否长期(0:有效期,1:永久2:过期)
+        startUseTime: '',	// 开始使用时间
+        validityTime: ''	// 有效期至
+       
+      },
+      addEditrules: {
+        img: [
+          { required: true, message: '请先上传图片', trigger: 'change' }
         ],
-        account: [
-          { required: true, trigger: 'blur', validator: validateLoginName }
+        imgName: [
+          { required: true, message: '请填写轮播名称', trigger: 'blur' }
         ],
-        industry: [
-          { required: true, message: '请选择所属行业', trigger: 'change' }
+        imgColour: [
+          { required: true, message: '请填写轮播颜色', trigger: 'blur' }
         ],
-        grade: [
-          { required: true, message: '请选择渠道商等级', trigger: 'change' }
+        imgUrl: [
+          { required: true, message: '请填写轮播跳转url', trigger: 'blur' }
         ],
-        entityName: [
-          { required: true, trigger: 'blur', validator: validateStoreRealName }
-        ],
-        entityAdress: [
-          { required: true, message: '请输入实体店地址', trigger: 'blur' }
-        ],
-        contacts: [
-          { required: true, message: '请输入联系人', trigger: 'blur' }
-        ],
-        phone: [
-          { required: true, trigger: 'blur', validator: validatePhone }
-        ],
-        fee: [
-          { required: true, message: '请输入手续费率', trigger: 'blur' }
-        ],
-        password: [
-          { required: true, message: '请输入登陆密码', trigger: 'blur' }
+        orderNum: [
+          { required: true, message: '排序不能为空', trigger: 'blur' },
+          { type: 'number', message: '排序必须为数字值' }
         ]
-
-      },
-      datalist: [
-        {
-          name: '测试渠道商',
-          account: 'chengXu',
-          industry: '奶茶',
-          grade: 'V2',
-          entityName: '一只酸奶牛',
-          entityAdress: '重庆市南岸区万达广场',
-          contacts: '程旭',
-          phone: '18883630318'
-        }
-      ],
-      yueNum: 0,
-      Size: 10, // 一页多少条
-      Current: 1, // 页码
-      total: 0, // 总数
-      time: null,
-      type: null,
-      loading: false // loading加载
+      }
     }
   },
   mounted() {
+    /*
+    *功能描述：获取屏幕高度添加背景色
+    *开发人员：LRS
+    */
+    this.bodyHeight = window.innerHeight - 85 + 'px'
+    /*
+    *功能描述：获取列表
+    *开发人员：LRS
+    */
     this.getlist()
   },
   methods: {
-    removeZX(row) {
-      disableStoreOne({
-        storeId: row.id,
-        status: row.status === 'USE' ? 1 : 0
 
-      }).then(res => {
-        if (res.status) {
-          this.$message({ message: '操作成功', type: 'success' })
-          this.getlist()
-        }
-      })
-    },
-    async addUser(formName) {
-      const _this = this
-      await _this.$refs[formName].validate((valid) => {
-        if (valid) {
-          if (!this.yhData.id) {
-            // this.yhData.password = ttyMD5(this.yhData.password)
-            const _param = {
-              loginName: this.yhData.account,
-              mobile: this.yhData.phone,
-              password: this.yhData.password,
-              rate: this.yhData.fee,
-              storeAddress: this.yhData.entityAdress,
-              storeLevel: this.yhData.grade,
-              storeName: this.yhData.name,
-              storeRealName: this.yhData.entityName,
-              tradeTypeId: this.yhData.industry,
-              userName: this.yhData.contacts
-            }
-            addStore(_param).then(res => {
-              if (res.status) {
-                _this.$message({ message: '操作成功', type: 'success' })
-                _this.dialogVisible_yh = false
-                _this.getlist()
-              }
-            })
-          } else {
-            const _param2 = {
-              storeId: this.yhData.id,
-              loginName: this.yhData.account,
-              mobile: this.yhData.phone,
-              password: this.yhData.password,
-              rate: this.yhData.fee,
-              storeAddress: this.yhData.entityAdress,
-              storeLevel: this.yhData.grade,
-              storeName: this.yhData.name,
-              storeRealName: this.yhData.entityName,
-              tradeTypeId: this.yhData.industry,
-              userName: this.yhData.contacts
-            }
-            updateStoreOne(_param2).then(res => {
-              if (res.status) {
-                _this.$message({ message: '操作成功', type: 'success' })
-                _this.dialogVisible_yh = false
-                _this.getlist()
-              }
-            })
-          }
-        }
-      })
-    },
-    goEdit(row) {
-      this.getTradeList()
-      getStoreOne({
-        storeId: row.id
-      }).then(res => {
-        if (res.status) {
-          this.dialogVisible_yh = true
-          console.log(res.data.store)
-          console.log('-----------')
-          this.yhData = {
-            id: row.id,
-            account: res.data.user.userName,
-            phone: res.data.store.mobile,
-            password: res.data.user.password,
-            fee: res.data.store.rate,
-            entityAdress: res.data.store.storeAddress,
-            grade: res.data.store.storeLevel,
-            name: res.data.store.storeName,
-            entityName: res.data.store.storeRealName,
-            industry: res.data.store.tradeTypeId,
-            contacts: res.data.store.userName
-          }
-        }
-      })
-
-      // this.yhData = {
-      //   id: row.id,
-      //   roleId: row.roleId,
-      //   username: row.username
-      // }
-    },
-    addZx() {
-      this.dialogVisible_yh = true
-      this.yhData = {
-        name: '', // 渠道商名称
-        account: '', // 账号
-        industry: '', // 行业
-        grade: '', // 等级
-        entityName: '', // 实体店名字
-        entityAdress: '', // 实体店地址
-        contacts: '', // 联系人
-        phone: '', // 联系电话
-        fee: '', // 手续费率
-        password: '' // 登陆密码
-      }
-      this.getTradeList()
-    },
-    goDetail(e, v) {
-      this.$router.push({ path: '/detial', query: { companyStatus: e, customerId: v }})
-    },
-    async getTradeList() {
-      await getTradeList().then(res => {
-        if (res.status) {
-          this.options = res.data
-          console.log(this.options)
-        }
-      })
-    },
+    /*
+    *功能描述：获取列表
+    *开发人员：CX
+    */
     getlist() {
       const _this = this
       _this.loading = true
-      var data = {
-        param: {
-          // userName: _this.userName,
-          current: _this.Current,
-          size: _this.Size
-
-        }
-      }
-      selectStoreList(data).then(res => {
-        console.log(res)
+      selectVoucherByStore({
+        current: _this.current,
+        size: _this.size
+      }).then(res => {
         if (res.status) {
-          setTimeout(res => {
+          _this.tableData = res.data.records
+          _this.total = res.data.total
+          setTimeout(() => {
             _this.loading = false
           }, 300)
-          _this.datalist = res.data.records
-          _this.total = res.data.total
         }
       })
     },
-    // 搜索
-    sousuo() {
-      this.Current = 1
+    /*
+    *功能描述：搜索
+    *开发人员：LRS
+    */
+    search() {
       this.getlist()
     },
-    // 时间戳转换
-    formatDate(value) {
-      const date = new Date(value)
-      const y = date.getFullYear()
-      let MM = date.getMonth() + 1
-      MM = MM < 10 ? ('0' + MM) : MM
-      let d = date.getDate()
-      d = d < 10 ? ('0' + d) : d
-      let h = date.getHours()
-      h = h < 10 ? ('0' + h) : h
-      let m = date.getMinutes()
-      m = m < 10 ? ('0' + m) : m
-      let s = date.getSeconds()
-      s = s < 10 ? ('0' + s) : s
-      return y + '-' + MM + '-' + d + ' ' + h + ':' + m + ':' + s
+    /*
+    *功能描述：一级添加分类弹出框
+    *开发人员：LRS
+    */
+    addFenleipop() {
+      this.title = '添加优惠卷'
+      this.addEditData = {// 新增、编辑字段
+        voucherName:"",//名称
+        title: '', // 标题
+        type: '', // 购物券类型
+        content: '',	// 详情
+        conditionTxt: '',	// 条件
+        amount: '',	// 数值
+        conditionAmount: '',	// 条件价格
+        // unit: '',	// 单位
+        validityStatus: '0',	// 是否长期(0:有效期,1:永久2:过期)
+        startUseTime: '',	// 开始使用时间
+        validityTime: ''	// 有效期至
+       
+      }
+      this.addFenleivisible = true
     },
-    toNum(value) {
-      if (!value) return 0
-      return value.toFixed(2)
+
+    /*
+    *功能描述：编辑弹出框
+    *开发人员：LRS
+    */
+    edit(e) {
+      this.addFenleivisible = true
+      this.title = '编辑优惠卷'
+      this.addEditData = {// 新增、编辑字段
+        id: e.id,
+         voucherName:e.voucherName,//名称
+        title: e.title, // 标题
+        type: e.type, // 购物券类型
+        content: e.content,	// 详情
+        conditionTxt: e.conditionTxt,	// 条件
+        amount: e.amount,	// 数值
+        conditionAmount: e.conditionAmount,	// 条件价格
+        // unit: '',	// 单位
+        validityStatus: e.validityStatus,	// 是否长期(0:有效期,1:永久2:过期)
+        startUseTime: e.startUseTime,	// 开始使用时间
+        validityTime: e.validityTime	// 有效期至
+      }
     },
-    // 分页
-    handleSizeChange(val) {
-      this.Size = val
+
+    /*
+    *功能描述：新增、编辑分类提交
+    *开发人员：LRS
+    */
+    onSubmit(formName) {
+      console.log(this.addEditData)
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          if (!this.addEditData.id) { // 添加分类
+            addVoucherByStore(this.addEditData).then(res => {
+              console.log(res)
+              if (res.status) {
+                this.$message({ message: '添加成功', type: 'success' })
+                this.addFenleivisible = false
+                this.getlist()
+              }
+            })
+          } else { // 编辑分类
+            updateVoucherByStore(this.addEditData).then(res => {
+              if (res.status) {
+                this.$message({ message: '添加成功', type: 'success' })
+                this.addFenleivisible = false
+                this.getlist()
+              }
+            })
+          }
+        }
+      })
+    },
+
+    /*
+    *功能描述：删除分类
+    *开发人员：LRS
+    */
+    remove(e) {
+      var data = {
+        id: e.id
+      }
+      this.$confirm('此操作将删除该轮播, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        delVoucherByStore(data).then(res => {
+          console.log(res)
+          if (res.status) {
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            })
+            this.getlist()
+          }
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+
+    /*
+    *功能描述：分页点击页码
+    *开发人员：LRS
+    */
+    currentPageChange(val) {
+      console.log(val)
+      this.current = val
       this.getlist()
     },
-    handleCurrentChange(val) {
-      this.Current = val
+    /*
+    *功能描述：分页选择条数
+    *开发人员：LRS
+    */
+    pageSizeChange(val) {
+      console.log(val)
+      this.size = val
       this.getlist()
     }
+
   }
 }
 </script>
 
 <style scoped>
-.useSign{
 
-  padding: 5px 8px;
-  background-color:#00c48f !important;
- color:#fff ;
- border-radius: 4px;
-}
-.noUseSign{
-   padding: 5px 8px;
-  background-color:rgb(167, 167, 167);
- color:#fff ;
- border-radius: 4px;
-}
-.toolS{
-  display: flex;
-  justify-content: space-between;
-   padding-bottom: 10px;
-    align-items:center;
+.fenlei_admin_box{
+  /* background: #F5F5FA; */
+  overflow: hidden;
+   margin:20px;
 }
 .shaowAll{
   /* box-shadow: 2px 4px 8px 8px rgba(0, 0, 0, 0.05); */
@@ -476,38 +368,49 @@ export default {
   padding: 20px;
 
 }
-.Ptitle{
-      font-size: 18px;
-    line-height: 18px;
-    color: #222;
-    font-weight: 700;
-
+.el-button--text{
+color: #00c48f !important;
 }
-.xfjl_box{
-  margin:20px;
-}
-.el-button{
-    padding: 8px 12px !important;
-}
-.fenye{
-    display: block;
-    text-align: right;
-    margin-top:20px;
-}
-.yue{
-  width:100%;
-  height:50px;
-  font-size: 18px;
-    color: #606266;
-    line-height: 50px;
-    padding-left: 10px;
-    font-weight: 600;
+.fenlei_admin_box .fenlei_admin{
   background: #fff;
-  float:left;
-  margin-bottom: 20px;
-  /* margin-left:122px; */
-  box-shadow: 0px 0px 5px #d2d2d2;
-  border-radius: 5px;
-  /* margin-top:20px; */
+  margin:15px;
+  padding: 15px;
+}
+.page-footer{
+  margin-top:20px;
+  float: right;
+}
+.border{
+  display: inline-block;
+  width:100%;
+  height: 28px;
+  line-height: 28px;
+  border: 1px solid #DCDFE6;
+  border-radius: 4px;
+  padding:0 15px;
+  font-size:12px;
+}
+.avatar-uploader .el-upload {
+  cursor: pointer;
+  position: relative;
+  display: block !important;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  border: 1px dashed #d9d9d9;
+  text-align: center;
+}
+.avatar {
+  max-width: 100%;
+  height: 100px;
+  display: block;
+  object-fit: cover;
 }
 </style>

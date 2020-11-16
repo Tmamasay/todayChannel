@@ -18,6 +18,52 @@ export function getMyMenus(data) {
     data
   })
 }
+//优惠卷管理
+
+// 新增渠道商优惠券
+export function addVoucherByStore(data) {
+  return request({
+    url: '/store/voucherManager/addVoucherByStore',
+    method: 'post',
+    data
+  })
+}
+// 删除渠道商优惠券
+export function delVoucherByStore(data) {
+  return request({
+    url: '/store/voucherManager/delVoucherByStore',
+    method: 'post',
+    data
+  })
+}
+// 单查渠道商优惠券
+export function getVoucherByStoreOne(data) {
+  return request({
+    url: '/store/voucherManager/getVoucherByStoreOne',
+    method: 'post',
+    data
+  })
+}
+
+// 渠道商优惠券种类分页
+export function selectVoucherByStore(data) {
+  return request({
+    url: '/store/voucherManager/selectVoucherByStore',
+    method: 'post',
+    data
+  })
+}
+// 修改渠道商优惠券
+export function updateVoucherByStore(data) {
+  return request({
+    url: '/store/voucherManager/updateVoucherByStore',
+    method: 'post',
+    data
+  })
+}
+
+//=======================
+
 // 分页渠道管理端商品
 export function selectGoodsByStore(data) {
   return request({
