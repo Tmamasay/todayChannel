@@ -95,23 +95,26 @@
           <thead>
             <tr class="ceTR">
               <th v-for="item in attributeName" :key="item" class="cell">{{ item }}</th>
+              <th class="cell">缩略图</th>
               <th class="cell">价格</th>
               <th class="cell">优惠价</th>
-              <th class="cell">缩略图</th>
+              <th class="cell">库存</th>
               <th class="cell">状态</th>
               <th class="cell">操作</th>
             </tr>
-            <tr v-for="item1 in SkuList.skuList" :key="item1">
-              <td v-for="item2 in item1.specsList" :key="item2" class="cell">{{ item2.valueName }}</td>
+            <tr v-for="(item1,index1) in SkuList.skuList" :key="index1">
+              <td v-for="(item2,index2) in item1.specsList" :key="index2" class="cell">{{ item2.valueName }}</td>
+              <td class="cell"><img :src="item1.skuImg" alt="" width="80px" height="80px" srcset=""></td>
               <td class="cell">{{ item1.price }}</td>
               <td class="cell">{{ item1.discountPrice }}</td>
-              <td class="cell"><img :src="item1.skuImg" alt="" width="80px" height="80px" srcset=""></td>
+              <td class="cell">{{ item1.stockNumber }}</td>
+
               <td class="cell"><span v-if="item1.status==='USE'" class="useSign">上架中</span>
                 <span v-else-if="item1.status==='STOP' " class="noUseSign" type="danger">已下架</span></td>
 
               <td class="cell"><el-button v-if="item1.status==='USE'" size="small" @click="downGoodsSKUAdmin(item1)">下架</el-button>
                 <el-button v-if="item1.status==='STOP'" size="small" @click="goSkuUpDIGO(item1)">上架</el-button></td>
-                <td><el-button size="small" @click="goSkuSet(item1)">库存管理</el-button></td>
+              <td><el-button size="small" @click="goSkuSet(item1)">库存管理</el-button></td>
             </tr>
 
           </thead>
@@ -187,9 +190,9 @@
     >
       <el-form v-if="dialogKUcChangeVisible" ref="classFyForm" label-width="100px" :model="kCNum">
         <el-form-item label="库存增减值">
-           <el-input v-model="kCNum" placeholder="加减库存默认为0,加库存传整数,减库存传负数" />
+          <el-input v-model="kCNum" placeholder="加减库存默认为0,加库存传整数,减库存传负数" />
         </el-form-item>
-     
+
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogKUcChangeVisible=false">取 消</el-button>
@@ -270,13 +273,13 @@
       </el-table>
       <div class="block fenye">
         <el-pagination
-          :current-page="Current"
+          :current-page="CurrentP"
           :page-sizes="[10, 20, 30, 50]"
-          :page-size="Size"
+          :page-size="SizeP"
           layout="total, sizes, prev, pager, next, jumper"
           :total="commTotal"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+          @size-change="handleSizeChangeP"
+          @current-change="handleCurrentChangeP"
         />
       </div>
     </el-dialog>
@@ -284,7 +287,7 @@
 </template>
 
 <script>
-import { selectGoodsByStore,setGoodsNumByStore, pullGoodsToStore, selectGoodsByAdmin, getTradeList, setGoodsTypeByStore, getTypeList, selectSKUByStore, setGoodsPriceByStore, downSkuByStore, disableGoodsAdmin } from '@/api/user'
+import { selectGoodsByStore, setGoodsNumByStore, pullGoodsToStore, selectGoodsByAdmin, getTradeList, setGoodsTypeByStore, getTypeList, selectSKUByStore, setGoodsPriceByStore, downSkuByStore, disableGoodsAdmin } from '@/api/user'
 import { fileUpload } from '@/api/chengxu'
 export default {
 
@@ -305,15 +308,18 @@ export default {
       }
     }
     return {
-      dialogKUcChangeVisible:false,// 库存管理
-      kcSkuId:'',// 操作库存的sku id
-      kCNum:0,// 库存变化值 +加 -减
+      dialogKUcChangeVisible: false, // 库存管理
+      kcSkuId: '', // 操作库存的sku id
+      kcGoodId: '', // 商品id
+      kCNum: 0, // 库存变化值 +加 -减
       queryAll: {
         goodsName: '',
         industry: ''
       },
       commList: [],
-      commTotal: [], // 总数
+      commTotal: 0, // 总数
+      SizeP: 10, // 一页多少条
+      CurrentP: 1, // 页码
       classList: [],
       checkChannel: [], // 选中渠道商
       checkGoods: [], // 选中商品
@@ -388,18 +394,17 @@ export default {
     this.getFlList()
   },
   methods: {
-   async makeSureKC(){
+    async makeSureKC() {
       await setGoodsNumByStore({
-       id: this.kcSkuId,
-	     stockNumber: +this.kCNum
+        id: this.kcSkuId,
+        stockNumber: +this.kCNum
       }).then(res => {
         if (res.status) {
-            this.$message({ message: '操作成功', type: 'success' })
-            this.getSKUList(this.skuGoodsId.goodsId)
+          this.$message({ message: '操作成功', type: 'success' })
+          this.getSKUList(this.kcGoodId)
+          this.dialogKUcChangeVisible = false
         }
       })
-
-
     },
     handleSelectionGoodsChange(val) {
       this.checkGoods = val
@@ -435,7 +440,7 @@ export default {
     },
     // 搜索
     searchGoods() {
-      this.Current = 1
+      this.CurrentP = 1
       this.getGoodsList()
     },
     importGoods() {
@@ -445,12 +450,12 @@ export default {
     },
     getGoodsList() {
       const _this = this
-      _this.loading = true
+      // _this.loading = true
       selectGoodsByAdmin({
         goodsName: _this.queryAll.goodsName,
         tradeId: _this.queryAll.industry,
-        current: _this.Current,
-        size: _this.Size
+        current: _this.CurrentP,
+        size: _this.SizeP
       }).then(res => {
         console.log(res)
         if (res.status) {
@@ -584,10 +589,11 @@ export default {
     goEdit(row) {
       this.$router.push({ path: '/platform', query: { goodsId: row.id }})
     },
-    //设置库存
-    goSkuSet(item){
-      this.kcSkuId=item.id
-      this.dialogKUcChangeVisible=true
+    // 设置库存
+    goSkuSet(item) {
+      this.kcSkuId = item.id
+      this.kCNum = 0
+      this.dialogKUcChangeVisible = true
     },
     goSkuUpDIGO(row) {
       this.dialogSKUVisible = true
@@ -673,13 +679,14 @@ export default {
           }, 300)
 
           _this.SkuList = res.data
+          _this.kcGoodId = res.data.goods.id
           const _NewAU = []
           _this.skuTitle = `SKU操作—${res.data.goods.goodsName}`
-
+          console.log(_this.SkuList.skuList)
           _this.SkuList.skuList[0].specsList.forEach(el => {
             _NewAU.push(el.keyName)
           })
-          console.log(_NewAU)
+
           _this.attributeName = _NewAU
           // _this.total = res.data.total
         }
@@ -729,6 +736,15 @@ export default {
     handleCurrentChange(val) {
       this.Current = val
       this.getlist()
+    },
+    // 分页
+    handleSizeChangeP(val) {
+      this.SizeP = val
+      this.getGoodsList()
+    },
+    handleCurrentChangeP(val) {
+      this.CurrentP = val
+      this.getGoodsList()
     }
   }
 }
