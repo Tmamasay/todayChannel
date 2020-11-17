@@ -60,7 +60,7 @@
               style="width:100%;line-height: 20px;margin-top: 40px;font-size:17px"
               @click.native.prevent="handleLogin('loginForm')"
             >登 陆</el-button>
-            <p class="login-bottom-text">tty management system</p>
+            <p class="login-bottom-text">渠道商端</p>
           </div>
         </el-col>
       </el-row>

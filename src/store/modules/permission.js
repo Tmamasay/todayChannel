@@ -50,11 +50,10 @@ export function filterAsyncRoutes(routes, roles) {
 export const componentsMap = {
   // 渠道商商品库
   goodsWarehouse: () => import('@/views/Platform/List'),
-  // 商品分类 
+  // 商品分类
   category: () => import('@/views/Commodity/classFyList'),
   // 优惠卷管理
   voucher: () => import('@/views/Channel/index'),
-  
 
   // globalGoodsWarehouse: () => import('@/views/power/index'), // 角色管理
   // category: () => import('@/views/Commodity/classFyList'), // 会员管理-会员列表
@@ -149,7 +148,7 @@ function convertRouter(asyncRouterMap) {
     var hdgl_icon = ['hdgl', 'hdgl_zl', 'hdgl_gr']// 话单管理
     var xtgl_icon = ['xtgl', 'xtgl_js']// 系统管理
     var mes_icon = ['zzFw']// 系统管理
-    var phone_icon = ['phone']// 系统管理
+    var phone_icon = ['store']// 系统管理
     asyncRouterMap.forEach(item => {
       // this.set(item, 0, arricon[0])
       switch (item.name) {
@@ -171,7 +170,7 @@ function convertRouter(asyncRouterMap) {
         case '增值服务':
           item.icon = mes_icon[0]
           break
-        case '号码库':
+        case '店铺管理':
           item.icon = phone_icon[0]
           break
         default:

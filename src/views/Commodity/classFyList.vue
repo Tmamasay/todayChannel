@@ -2,29 +2,18 @@
   <!-- 课程改造-分类管理 2020-8-10 LRS -->
   <div class="fenlei_admin_box shaowAll" :style="{height:bodyHeight}">
     <div class="fenlei_admin">
-      <div class="top_form">
+      <!-- <div class="top_form">
         <el-form :inline="true" size="mini">
           <el-form-item label="分类名称：">
             <el-input v-model="searchData.name_value" placeholder="请输入分类名称" />
           </el-form-item>
-          <el-form-item label="编辑时间：">
-            <el-date-picker
-              v-model="searchData.date_value"
-              type="daterange"
-              unlink-panels
-              value-format="yyyy-MM-dd"
-              format="yyyy-MM-dd"
-              range-separator="-"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-            />
-          </el-form-item>
+
           <el-form-item>
             <el-button type="primary" size="mini" icon="el-icon-search" @click="search">搜索</el-button>
             <el-button type="primary" size="mini" icon="el-icon-plus" @click="addFenleipop">添加一级分类</el-button>
           </el-form-item>
         </el-form>
-      </div>
+      </div> -->
       <div class="list_box">
         <el-table
           v-loading="loading"

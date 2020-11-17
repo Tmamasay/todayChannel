@@ -18,7 +18,7 @@ export function getMyMenus(data) {
     data
   })
 }
-//优惠卷管理
+// 优惠卷管理
 
 // 新增渠道商优惠券
 export function addVoucherByStore(data) {
@@ -62,7 +62,7 @@ export function updateVoucherByStore(data) {
   })
 }
 
-//=======================
+// =======================
 
 // 分页渠道管理端商品
 export function selectGoodsByStore(data) {

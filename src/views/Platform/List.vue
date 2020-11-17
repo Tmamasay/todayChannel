@@ -1,9 +1,12 @@
 <template>
   <div class="xfjl_box shaowAll">
     <div class="toolS">
-      <el-button type="primary" style="margin-bottom:20px" @click="goAdd">新增商品</el-button>
-      <el-button type="primary" style="margin-bottom:20px;margin-left:-400px" @click="importGoods">导入平台商品</el-button>
-      <el-form :inline="true" :model="query" class="demo-form-inline">
+      <el-button-group style="margin-bottom:20px">
+        <el-button type="primary" @click="goAdd">新增商品</el-button>
+        <el-button type="primary" style="margin-left:20px" @click="importGoods">导入平台商品</el-button>
+      </el-button-group>
+
+      <el-form :inline="true" :model="query" size="mini" class="demo-form-inline">
         <el-form-item label="">
           <el-input v-model="query.goodsName" placeholder="请输入商品名称" />
         </el-form-item>
