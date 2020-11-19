@@ -75,18 +75,21 @@
           :close-on-click-modal="false"
           style="width:85%;margin:0 auto"
         >
-          <el-form v-if="addFenleivisible" ref="addEditData" :rules="addEditrules" :inline="true" :model="addEditData" label-width="110px">
+         <el-tabs v-model="activeName" type="card" @tab-click="handleClick">
+          <el-tab-pane v-for="(item,index) in VoucherTypes" :key="index" :label="item" :name="item"></el-tab-pane>
+        </el-tabs>
+          <el-form v-if="addFenleivisible&&activeName=='MAN_JIAN'" ref="addEditData" :rules="addEditrules" :inline="true" :model="addEditData" label-width="110px">
             <el-form-item label="名称：" prop="voucherName">
               <el-input v-model="addEditData.voucherName" placeholder="请输入名称" />
             </el-form-item>
 
-            <el-form-item label="优惠券类型：" prop="type">
+            <!-- <el-form-item label="优惠券类型：" prop="type">
               <el-select v-model="addEditData.type" placeholder="请选择" style="width:90%">
                 <el-option label="满减" value="man_jian" />
                 <el-option label="折扣" value="ze_kou" />
 
               </el-select>
-            </el-form-item>
+            </el-form-item> -->
             <el-form-item label="小标题：" prop="title">
               <el-input v-model="addEditData.title" placeholder="请输入小标题" />
             </el-form-item>
@@ -97,10 +100,10 @@
               <el-input v-model="addEditData.conditionTxt" placeholder="满多少可使用" />
             </el-form-item>
             <el-form-item label="条件价格：" prop="conditionAmount">
-              <el-input v-model="addEditData.conditionAmount" placeholder="达标金额（满多少）" />
+              <el-input  type="number" v-model="addEditData.conditionAmount" placeholder="达标金额（满多少）" />
             </el-form-item>
             <el-form-item label="数值：" prop="amount">
-              <el-input v-model="addEditData.amount" placeholder="折扣数值" />
+              <el-input type="number" v-model="addEditData.amount" placeholder="折扣数值" />
             </el-form-item>
             <el-form-item label="是否长期：" prop="validityStatus">
               <el-select v-model="addEditData.validityStatus" placeholder="请选择" style="width:90%">
@@ -145,10 +148,12 @@
 </template>
 
 <script>
-import { selectVoucherByStore, addVoucherByStore, updateVoucherByStore, delVoucherByStore } from '@/api/user'
+import {selectVoucherTypes, selectVoucherByStore, addManjianVoucherByStore, updateVoucherByStore, delVoucherByStore } from '@/api/user'
 export default {
   data() {
     return {
+      activeName: '',//选中种类
+      VoucherTypes:[],//优惠卷种类
       datalist: [],
       checkGoods: [], // 选中商品数组
       checkClassFy: '', // 选中分类
@@ -175,8 +180,8 @@ export default {
         type: '', // 购物券类型
         content: '',	// 详情
         conditionTxt: '',	// 条件
-        amount: '',	// 数值
-        conditionAmount: '',	// 条件价格
+        amount: 0,	// 数值
+        conditionAmount: 0,	// 条件价格
         // unit: '',	// 单位
         validityStatus: '0',	// 是否长期(0:有效期,1:永久2:过期)
         startUseTime: '',	// 开始使用时间
@@ -206,17 +211,18 @@ export default {
           { required: true, message: '请填写有效期限', trigger: 'change' }
         ],
         amount: [
-          { required: true, message: '数值不能为空', trigger: 'blur' },
-          { type: 'number', message: '数值必须为数字值' }
+          { required: true, message: '数值不能为空', trigger: 'blur' }
+          
         ],
         conditionAmount: [
-          { required: true, message: '条件价格不能为空', trigger: 'blur' },
-          { type: 'number', message: '条件价格必须为数字值' }
+          { required: true, message: '条件价格不能为空', trigger: 'blur' }
+          
         ]
       }
     }
   },
   mounted() {
+   
     /*
     *功能描述：获取屏幕高度添加背景色
     *开发人员：LRS
@@ -229,6 +235,25 @@ export default {
     this.getlist()
   },
   methods: {
+     /*
+    *功能描述：获取屏幕高度添加背景色
+    *开发人员：LRS
+    */
+     handleClick(tab, event) {
+       this.activeName=tab.name
+      },
+      /*
+    *功能描述：展示店铺优惠券的所有分类
+    *开发人员：CX
+    */
+    selectVoucherTypesList() {
+      selectVoucherTypes().then(res => {
+        if (res.status) {
+          this.VoucherTypes= res.data
+          this.activeName=this.VoucherTypes[0]
+        }
+      })
+    },
 
     /*
     *功能描述：获取列表
@@ -279,6 +304,7 @@ export default {
         validityTime: ''	// 有效期至
 
       }
+      this.selectVoucherTypesList()
       this.addFenleivisible = true
     },
 
@@ -313,8 +339,9 @@ export default {
       console.log(this.addEditData)
       this.$refs[formName].validate((valid) => {
         if (valid) {
+          this.addEditData.type=this.activeName
           if (!this.addEditData.id) { // 添加分类
-            addVoucherByStore(this.addEditData).then(res => {
+            addManjianVoucherByStore(this.addEditData).then(res => {
               console.log(res)
               if (res.status) {
                 this.$message({ message: '添加成功', type: 'success' })

@@ -19,11 +19,19 @@ export function getMyMenus(data) {
   })
 }
 // 优惠卷管理
-
-// 新增渠道商优惠券
-export function addVoucherByStore(data) {
+//展示店铺优惠券的所有分类
+export function selectVoucherTypes(data) {
   return request({
-    url: '/store/voucherManager/addVoucherByStore',
+    url: '/store/storeVoucherManager/selectVoucherTypes',
+    method: 'post',
+    data
+  })
+}
+
+// 新增渠道商满减优惠券(满减)
+export function addManjianVoucherByStore(data) {
+  return request({
+    url: '/store/storeVoucherManager/addManjianVoucherByStore',
     method: 'post',
     data
   })
