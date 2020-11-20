@@ -19,10 +19,18 @@ export function getMyMenus(data) {
   })
 }
 // 优惠卷管理
-//展示店铺优惠券的所有分类
+// 展示店铺优惠券的所有分类
 export function selectVoucherTypes(data) {
   return request({
     url: '/store/storeVoucherManager/selectVoucherTypes',
+    method: 'post',
+    data
+  })
+}
+// 单查渠道商满减优惠券(满减)
+export function getManjianVoucherByStoreOne(data) {
+  return request({
+    url: '/store/storeVoucherManager/getManjianVoucherByStoreOne',
     method: 'post',
     data
   })
@@ -36,10 +44,26 @@ export function addManjianVoucherByStore(data) {
     data
   })
 }
-// 删除渠道商优惠券
-export function delVoucherByStore(data) {
+// 删除渠道商满减优惠券(满减)
+export function delManjianVoucherByStore(data) {
   return request({
-    url: '/store/voucherManager/delVoucherByStore',
+    url: '/store/storeVoucherManager/delManjianVoucherByStore',
+    method: 'post',
+    data
+  })
+}
+// 设置是否可用渠道商满减优惠券(满减)
+export function changeManjianVoucherByStore(data) {
+  return request({
+    url: '/store/storeVoucherManager/changeManjianVoucherByStore',
+    method: 'post',
+    data
+  })
+}
+// 分页渠道商满减优惠券(满减)
+export function pageManjianByStore(data) {
+  return request({
+    url: 'store/storeVoucherManager/pageManjianByStore',
     method: 'post',
     data
   })
