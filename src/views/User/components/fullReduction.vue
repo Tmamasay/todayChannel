@@ -38,8 +38,8 @@
           <el-table-column prop="conditionAmount" label="条件价格" />
           <el-table-column prop="amount" label="数值" />
 
-          <el-table-column prop="startTime" label="生效时间" />
-          <el-table-column prop="endTime" label="结束时间" />
+          <el-table-column prop="startUseTime" label="生效时间" />
+          <el-table-column prop="validityTime" label="结束时间" />
           <!-- <el-table-column prop="createTime" label="编辑时间" align="center" /> -->
           <el-table-column prop="operation" label="操作" align="center">
             <template slot-scope="scope">
@@ -125,7 +125,7 @@
 </template>
 
 <script>
-import { pageManjianByStore, useManjianVoucherByStore, changeManjianVoucherByStore, addManjianVoucherByStore, delManjianVoucherByStore } from '@/api/user'
+import { userPageManjianByStore, usePerManjianVoucherByStore, changeManjianVoucherByUser, addManjianVoucherByUser, delManjianVoucherByUser } from '@/api/user'
 export default {
   props: {
     coupon: {
@@ -208,7 +208,7 @@ export default {
   },
   methods: {
     downupYh(row) {
-      useManjianVoucherByStore({
+      usePerManjianVoucherByStore({
         id: row.id,
         validityStatus: +row.validityStatus ? 0 : 1
       }).then(res => {
@@ -225,7 +225,7 @@ export default {
     getlist() {
       const _this = this
       _this.loading = true
-      pageManjianByStore({
+      userPageManjianByStore({
         current: _this.current,
         size: _this.size,
         voucherName: _this.searchData.voucherName
@@ -301,7 +301,7 @@ export default {
           this.addEditData.amount = Math.abs(this.addEditData.amount)	// 数值
           this.addEditData.conditionAmount = Math.abs(this.addEditData.conditionAmount)	// 条件价格
           if (!this.addEditData.id) { // 添加分类
-            addManjianVoucherByStore(this.addEditData).then(res => {
+            addManjianVoucherByUser(this.addEditData).then(res => {
               console.log(res)
               if (res.status) {
                 this.$message({ message: '添加成功', type: 'success' })
@@ -310,7 +310,7 @@ export default {
               }
             })
           } else { // 编辑分类
-            changeManjianVoucherByStore(this.addEditData).then(res => {
+            changeManjianVoucherByUser(this.addEditData).then(res => {
               if (res.status) {
                 this.$message({ message: '添加成功', type: 'success' })
                 this.addFenleivisible = false
@@ -335,7 +335,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        delManjianVoucherByStore(data).then(res => {
+        delManjianVoucherByUser(data).then(res => {
           console.log(res)
           if (res.status) {
             this.$message({

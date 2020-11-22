@@ -54,6 +54,7 @@ export const componentsMap = {
   category: () => import('@/views/Commodity/classFyList'),
   // 优惠卷管理
   voucher: () => import('@/views/Channel/index'),
+  userVoucher: () => import('@/views/User/index'),
 
   // globalGoodsWarehouse: () => import('@/views/power/index'), // 角色管理
   // category: () => import('@/views/Commodity/classFyList'), // 会员管理-会员列表
