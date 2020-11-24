@@ -27,7 +27,38 @@ export function selectVoucherTypes(data) {
     data
   })
 }
-
+//设置店铺的营业时间
+export function setStoreBusinessTime(data) {
+  return request({
+    url: '/store/storeSwitchManager/setStoreBusinessTime',
+    method: 'post',
+    data
+  })
+}
+//设置店铺是否打单
+export function setStorePrint(data) {
+  return request({
+    url: '/store/storeSwitchManager/setStorePrint',
+    method: 'post',
+    data
+  })
+}
+//设置店铺的起步价
+export function setStoreStartPrice(data) {
+  return request({
+    url: '/store/storeSwitchManager/setStoreStartPrice',
+    method: 'post',
+    data
+  })
+}
+//查询自己商店下的所有设置
+export function getMySwitch(data) {
+  return request({
+    url: '/store/storeSwitchManager/getMySwitch',
+    method: 'post',
+    data
+  })
+}
 // 展示店铺优惠券的所有分类
 export function userSelectVoucherTypes(data) {
   return request({
