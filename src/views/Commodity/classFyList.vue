@@ -2,7 +2,7 @@
   <!-- 课程改造-分类管理 2020-8-10 LRS -->
   <div class="fenlei_admin_box shaowAll" :style="{height:bodyHeight}">
     <div class="fenlei_admin">
-      <!-- <div class="top_form">
+      <div class="top_form">
         <el-form :inline="true" size="mini">
           <el-form-item label="分类名称：">
             <el-input v-model="searchData.name_value" placeholder="请输入分类名称" />
@@ -13,7 +13,7 @@
             <el-button type="primary" size="mini" icon="el-icon-plus" @click="addFenleipop">添加一级分类</el-button>
           </el-form-item>
         </el-form>
-      </div> -->
+      </div>
       <div class="list_box">
         <el-table
           v-loading="loading"

@@ -1,47 +1,54 @@
 <template>
   <!--  优惠卷  -->
-  <div class="fenlei_admin_box shaowAll"  style="height:500px">
+  <div class="fenlei_admin_box shaowAll" style="height:500px">
     <el-tabs v-model="activeName" type="card" @tab-click="handleClick">
-      <el-tab-pane label="营业时间" name="first"   >
-         <el-form style="padding:20px"  ref="addEditData" :rules="addEditrules" :inline="true" :model="addEditData" label-width="110px">
-            <el-form-item label="营业时间：" prop="time">
-              <el-time-picker
-                is-range
-                 arrow-control
-                v-model="addEditData.time"
-                format="HH:mm"
-                value-format="HH:mm"
-                range-separator="至"
-                start-placeholder="开店时间"
-                end-placeholder="关店时间"
-                placeholder="选择时间范围">
-              </el-time-picker>
-              <el-button type="primary" style="margin-left:15px" @click="onSubmit('addEditData')">提交</el-button>
-            </el-form-item>
-            <p style="font-size:25px;font-weight:500">开店时间：{{config.startTime}}</p>
-            <p style="font-size:25px;font-weight:500">关店时间：{{config.endTime}}</p>
-          </el-form>
+      <el-tab-pane label="营业时间" name="first">
+        <el-form ref="addEditData" style="padding:20px" :rules="addEditrules" :inline="true" :model="addEditData" label-width="110px">
+          <el-form-item label="营业时间：" prop="time">
+            <el-time-picker
+              v-model="addEditData.time"
+              is-range
+              arrow-control
+              format="HH:mm"
+              value-format="HH:mm"
+              range-separator="至"
+              start-placeholder="开店时间"
+              end-placeholder="关店时间"
+              placeholder="选择时间范围"
+            />
+            <el-button type="primary" style="margin-left:15px" @click="onSubmit('addEditData')">提交</el-button>
+          </el-form-item>
+          <p style="font-size:25px;font-weight:500">开店时间：{{ config.startTime }}</p>
+          <p style="font-size:25px;font-weight:500">关店时间：{{ config.endTime }}</p>
+        </el-form>
       </el-tab-pane>
-      <el-tab-pane label="是否打单" name="second"  >
-      <div style="padding:20px">
+      <el-tab-pane label="是否打单" name="second">
+        <div style="padding:20px">
           <el-radio v-model="isPrint" label="0" border>不打单</el-radio>
           <el-radio v-model="isPrint" label="1" border>打单</el-radio>
           <el-button type="primary" @click="onSubmit2">提交</el-button>
         </div>
       </el-tab-pane>
-      <el-tab-pane label="起送价" name="third"  >
+      <el-tab-pane label="起送价" name="third">
         <div style="padding:20px">
-    <el-input v-model="StartPrice" class="no-number" style="width:140px"  placeholder="起送价" />
-        <el-button type="primary" @click="onSubmit3" style="margin-left:30px">提交</el-button>
+          <el-input v-model="StartPrice" class="no-number" style="width:140px" placeholder="起送价" />
+          <el-button type="primary" style="margin-left:30px" @click="onSubmit3">提交</el-button>
         </div>
-        
+
+      </el-tab-pane>
+      <el-tab-pane label="是否配送" name="four">
+        <div style="padding:20px">
+          <el-radio v-model="isGive" label="0" border>不配送</el-radio>
+          <el-radio v-model="isGive" label="1" border>配送</el-radio>
+          <el-button type="primary" @click="onSubmit4">提交</el-button>
+        </div>
       </el-tab-pane>
     </el-tabs>
   </div>
 </template>
 
 <script>
-import { setStoreBusinessTime,setStorePrint ,setStoreStartPrice,getMySwitch} from '@/api/user'
+import { setStoreBusinessTime, setStorePrint, setStoreService, setStoreStartPrice, getMySwitch } from '@/api/user'
 
 export default {
   components: {
@@ -51,17 +58,18 @@ export default {
     return {
       activeName: 'first', // 选中种类
       VoucherTypes: [], // 优惠卷种类
-      addEditData:{
-          time:''
+      addEditData: {
+        time: ''
       },
-      isPrint:'1',
-      StartPrice:0,
-      config:{},
+      isPrint: '1',
+      isGive: '0',
+      StartPrice: 0,
+      config: {},
       addEditrules: {
         time: [
           { required: true, message: '请选择时间范围', trigger: 'change' }
         ]
-        }
+      }
 
     }
   },
@@ -74,62 +82,70 @@ export default {
     // this.bodyHeight = window.innerHeight - 85 + 'px'
   },
   methods: {
-    gitConfig(){
+    gitConfig() {
       getMySwitch({
-             startPrice:+this.StartPrice
-            }).then(res => {
-              console.log(res)
-              if (res.status) {
-                this.config=res.data.switch
-                this.isPrint=res.data.switch.isPrint+''
-                this.StartPrice=res.data.switch.startPrice
-        
-              }
-            })
-
+        startPrice: +this.StartPrice
+      }).then(res => {
+        console.log(res)
+        if (res.status) {
+          this.config = res.data.switch
+          this.isPrint = res.data.switch.isPrint + ''
+          this.isGive = res.data.switch.isGive + ''
+          this.StartPrice = res.data.switch.startPrice
+        }
+      })
     },
-     onSubmit3(){
-       if (!this.StartPrice) {
-         this.$message({ message: '请设置起送价', type: 'warning' })
-          return
-       }
-       setStoreStartPrice({
-             startPrice:+this.StartPrice
-            }).then(res => {
-              console.log(res)
-              if (res.status) {
-                this.$message({ message: '操作成功', type: 'success' })
-                this.gitConfig()
-              }
-            })
-
+    onSubmit3() {
+      if (!this.StartPrice) {
+        this.$message({ message: '请设置起送价', type: 'warning' })
+        return
+      }
+      setStoreStartPrice({
+        startPrice: +this.StartPrice
+      }).then(res => {
+        console.log(res)
+        if (res.status) {
+          this.$message({ message: '操作成功', type: 'success' })
+          this.gitConfig()
+        }
+      })
     },
-    onSubmit2(){
-       setStorePrint({
-             isPrint:+this.isPrint
-            }).then(res => {
-              console.log(res)
-              if (res.status) {
-                this.$message({ message: '操作成功', type: 'success' })
-                this.gitConfig()
-              }
-            })
-
+    onSubmit4() {
+      setStoreService({
+        isGive: +this.isGive
+      }).then(res => {
+        console.log(res)
+        if (res.status) {
+          this.$message({ message: '操作成功', type: 'success' })
+          this.gitConfig()
+        }
+      })
     },
-     onSubmit(formName) {
+    onSubmit2() {
+      setStorePrint({
+        isPrint: +this.isPrint
+      }).then(res => {
+        console.log(res)
+        if (res.status) {
+          this.$message({ message: '操作成功', type: 'success' })
+          this.gitConfig()
+        }
+      })
+    },
+    onSubmit(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           console.log(this.addEditData)
-            setStoreBusinessTime({
-              endTime:this.addEditData.time[1],
-	            startTime: this.addEditData.time[0]
-            }).then(res => {
-              console.log(res)
-              if (res.status) {
-                this.$message({ message: '操作成功', type: 'success' })
-                  this.gitConfig()
-              }
-            })
+          setStoreBusinessTime({
+            endTime: this.addEditData.time[1],
+            startTime: this.addEditData.time[0]
+          }).then(res => {
+            console.log(res)
+            if (res.status) {
+              this.$message({ message: '操作成功', type: 'success' })
+              this.gitConfig()
+            }
+          })
         }
       })
     },
@@ -141,7 +157,7 @@ export default {
       console.log(tab)
       this.activeName = tab.name
     }
-    
+
   }
 
 }

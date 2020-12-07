@@ -27,7 +27,7 @@ export function selectVoucherTypes(data) {
     data
   })
 }
-//设置店铺的营业时间
+// 设置店铺的营业时间
 export function setStoreBusinessTime(data) {
   return request({
     url: '/store/storeSwitchManager/setStoreBusinessTime',
@@ -35,7 +35,7 @@ export function setStoreBusinessTime(data) {
     data
   })
 }
-//设置店铺是否打单
+// 设置店铺是否打单
 export function setStorePrint(data) {
   return request({
     url: '/store/storeSwitchManager/setStorePrint',
@@ -43,7 +43,15 @@ export function setStorePrint(data) {
     data
   })
 }
-//设置店铺的起步价
+// 设置店铺是否打单
+export function setStoreService(data) {
+  return request({
+    url: '/store/storeSwitchManager/setStoreService',
+    method: 'post',
+    data
+  })
+}
+// 设置店铺的起步价
 export function setStoreStartPrice(data) {
   return request({
     url: '/store/storeSwitchManager/setStoreStartPrice',
@@ -51,7 +59,7 @@ export function setStoreStartPrice(data) {
     data
   })
 }
-//查询自己商店下的所有设置
+// 查询自己商店下的所有设置
 export function getMySwitch(data) {
   return request({
     url: '/store/storeSwitchManager/getMySwitch',
