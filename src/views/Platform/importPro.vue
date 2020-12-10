@@ -224,7 +224,7 @@ export default {
         storeId: this.checkChannel[0].id
       }).then(res => {
         if (res.status) {
-          this.$message({ message: res.statusMessage, type: 'success' })
+          this.$message({ message: '操作成功', type: 'success' })
           this.$refs.multipleTable1.clearSelection()
           this.$refs.multipleTable.clearSelection()
         } else {

@@ -49,6 +49,7 @@ const actions = {
 
         loginName: username.trim(),
         password: password
+
         // verificationCode: 'asdf'
         // sysName: 'tyteen1',
         // loginType: 'tyteen',

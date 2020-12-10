@@ -24,9 +24,10 @@ service.interceptors.request.use(
     if (store.getters.token) {
       // 让每个请求携带令牌
       // ['X-Token']是自定义头密钥
-      // 请根据实际情况修改
+      // 请根据实际情况修改  :
       // config.headers['access_token'] = getToken()
       config.headers['Authorization'] = getToken()
+      config.headers['tokenType'] = 'manager'
       // config.headers['refresh_token'] = getRefreshToken()
     }
     needLoadingRequestCount++
