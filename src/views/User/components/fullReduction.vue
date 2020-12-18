@@ -38,8 +38,8 @@
           <el-table-column prop="conditionAmount" label="条件价格" />
           <el-table-column prop="amount" label="数值" />
 
-          <el-table-column prop="startUseTime" label="生效时间" />
-          <el-table-column prop="validityTime" label="结束时间" />
+          <el-table-column prop="startTime" label="生效时间" />
+          <el-table-column prop="endTime" label="结束时间" />
           <!-- <el-table-column prop="createTime" label="编辑时间" align="center" /> -->
           <el-table-column prop="operation" label="操作" align="center">
             <template slot-scope="scope">

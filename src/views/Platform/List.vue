@@ -540,6 +540,7 @@ export default {
         if (res.status) {
           this.$message({ message: '操作成功', type: 'success' })
           this.getSKUList(row.goodsId)
+          this.getlist()
         }
       })
     },
@@ -585,7 +586,9 @@ export default {
       }).then(res => {
         if (res.status) {
           this.$message({ message: '操作成功', type: 'success' })
-          this.getlist()
+          setTimeout(() => {
+            this.getlist()
+          }, 1000)
         }
       })
     },
@@ -628,8 +631,8 @@ export default {
               _this.$message({ message: '操作成功', type: 'success' })
               _this.$refs.upload.clearFiles()
               _this.dialogSKUVisible = false
-
               _this.getSKUList(this.skuGoodsId.goodsId)
+              _this.getlist()
             }
           })
         }
