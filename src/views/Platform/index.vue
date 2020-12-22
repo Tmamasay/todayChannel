@@ -605,6 +605,15 @@ export default {
         }
       })
     },
+    forMateOne(arr) {
+      const reArr = []
+      arr.forEach(el => {
+        const midArr = []
+        midArr.push(el)
+        reArr.push(midArr)
+      })
+      return reArr
+    },
     // 新增
     async commodSubmit(formName) {
       // this.step = 2
@@ -614,7 +623,8 @@ export default {
         if (valid) {
           const data = {
             id: this.addCommodForm.id || null,
-            attributes: this.arrp(this.addCommodForm.attributes),
+            // attributes: this.arrp(this.addCommodForm.attributes),
+            attributes: this.GuienamicTags.length > 1 ? this.arrp(this.addCommodForm.attributes) : this.forMateOne(this.arrp(this.addCommodForm.attributes)),
             attributeName: this.GuienamicTags,
             goodsDetails: this.addCommodForm.goodsDetails,
             goodsName: this.addCommodForm.goodsName,
