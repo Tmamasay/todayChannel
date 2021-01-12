@@ -86,7 +86,6 @@ import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
 import { ttyMD5 } from '@/utils'
-import { removeToken, removeRefreshToken, getisOpen, setisOpen, removeInfo, removecustomerId } from '@/utils/auth'
 import { callInside, updatePassword } from '@/api/framework'
 export default {
   components: {
@@ -139,52 +138,35 @@ export default {
     ])
   },
   mounted() {
-    if (!getisOpen()) {
-      // this.open()
-    }
+    // if (!getisOpen()) {
+    //   // this.open()
+    // }
   },
   methods: {
 
     getImgUrl(icon) {
       return require(`@/assets/avatar/PITAO-${Math.floor(Math.random() * 15 + 1)}.png`)
     },
-    open() {
-      this.$alert('尊敬的客户，您好:<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;为保障回头客呼叫平台为广大客户提供更加优质的服务，系统对通话线路进行了升级。升级后由原先的0971号段统一切换为028号段，呼叫后请注意接听，避免对坐席造成影响。如有问题请及时联系客服，回头客祝您生活愉快。', '温馨提示', {
-        confirmButtonText: '确定',
-        dangerouslyUseHTMLString: true,
-        center: false,
-        callback: action => {
-          setisOpen(true)
-          // this.$message({
-          //   type: 'info',
-          //   message: `action: ${action}`
-          // })
-        }
-      })
-    },
+    // open() {
+    //   this.$alert('尊敬的客户，您好:<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;为保障回头客呼叫平台为广大客户提供更加优质的服务，系统对通话线路进行了升级。升级后由原先的0971号段统一切换为028号段，呼叫后请注意接听，避免对坐席造成影响。如有问题请及时联系客服，回头客祝您生活愉快。', '温馨提示', {
+    //     confirmButtonText: '确定',
+    //     dangerouslyUseHTMLString: true,
+    //     center: false,
+    //     callback: action => {
+    //       setisOpen(true)
+    //       // this.$message({
+    //       //   type: 'info',
+    //       //   message: `action: ${action}`
+    //       // })
+    //     }
+    //   })
+    // },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
       var _this = this
-      await _this.$store.dispatch('user/logout').then(res => {
-        if (res.data) {
-          removeToken()
-          removeRefreshToken()
-          removeInfo()
-          if (_this.$route !== '/cxLrs/admin/webStatistics') {
-            console.log('cheng的憨憨=========================》')
-            _this.$router.push('/cxLrs/admin/webStatistics')
-            // this.activeMenu()
-          }
-          removecustomerId()
-          localStorage.removeItem('buttons')
-          _this.$store.dispatch('permission/fangfa')
-          console.log(_this.$store.getters.router)
-          _this.$router.push(`/login?redirect=${_this.$route.fullPath}`)
-          console.log('我执行到这里来了')
-        }
-      })
+      await _this.$store.dispatch('user/resetToken')
     },
     // 外呼弹出框
     boda_pop(e) {
