@@ -9,7 +9,7 @@
           </el-form-item>
           <el-form-item>
             <el-button type="primary" size="mini" icon="el-icon-search" @click="search">搜索</el-button>
-            <el-button type="primary" size="mini" icon="el-icon-plus" @click="addFenleipop">添加优惠券</el-button>
+            <!-- <el-button type="primary" size="mini" icon="el-icon-plus" @click="addFenleipop">添加优惠券</el-button> -->
           </el-form-item>
         </el-form>
       </div>
@@ -37,17 +37,19 @@
           <el-table-column prop="content" label="详情" />
           <el-table-column prop="conditionAmount" label="条件价格" />
           <el-table-column prop="amount" label="数值" />
+          <el-table-column prop="integral" label="积分价格" />
+          <el-table-column prop="num" label="库存" />
 
           <el-table-column prop="startTime" label="生效时间" />
           <el-table-column prop="endTime" label="结束时间" />
           <!-- <el-table-column prop="createTime" label="编辑时间" align="center" /> -->
           <el-table-column prop="operation" label="操作" align="center">
             <template slot-scope="scope">
-              <el-button v-if="+scope.row.validityStatus===1" type="text" size="mini" @click="downupYh(scope.row)">启用</el-button>
-              <el-button v-else-if="+scope.row.validityStatus===0" type="text" size="mini" @click="downupYh(scope.row)">禁用</el-button>
-              <el-button type="text" size="mini" @click="edit(scope.row)">编辑</el-button>
-              <!-- <el-button type="text" size="mini" @click="getRule(scope.row)">兑换规则</el-button> -->
-              <el-button type="text" size="mini" @click="remove(scope.row)">删除</el-button>
+              <!-- <el-button v-if="+scope.row.validityStatus===1" type="text" size="mini" @click="downupYh(scope.row)">启用</el-button>
+              <el-button v-else-if="+scope.row.validityStatus===0" type="text" size="mini" @click="downupYh(scope.row)">禁用</el-button> -->
+              <!-- <el-button type="text" size="mini" @click="edit(scope.row)">编辑</el-button> -->
+              <el-button type="text" size="mini" @click="getRule(scope.row)">兑换规则</el-button>
+              <!-- <el-button type="text" size="mini" @click="remove(scope.row)">删除</el-button> -->
             </template>
           </el-table-column>
         </el-table>
@@ -145,7 +147,7 @@
 </template>
 
 <script>
-import { userPageManjianByStore, usePerManjianVoucherByStore, changeManjianVoucherByUser, addManjianVoucherByUser, delManjianVoucherByUser, setVoucherStock } from '@/api/user'
+import { selectStoreVoucherPage, usePerManjianVoucherByStore, changeManjianVoucherByUser, addManjianVoucherByUser, delManjianVoucherByUser, setVoucherStock } from '@/api/user'
 export default {
   props: {
     coupon: {
@@ -279,7 +281,7 @@ export default {
     getlist() {
       const _this = this
       _this.loading = true
-      userPageManjianByStore({
+      selectStoreVoucherPage({
         current: _this.current,
         size: _this.size,
         voucherName: _this.searchData.voucherName

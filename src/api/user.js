@@ -141,6 +141,22 @@ export function userPageManjianByStore(data) {
     data
   })
 }
+// (管理端)积分商城展示所有的用户红包(满减)
+export function selectStoreVoucherPage(data) {
+  return request({
+    url: '/store/userVoucherManager/selectStoreVoucherPage',
+    method: 'post',
+    data
+  })
+}
+// 为用户红包设置库存以及积分价格(满减)
+export function setVoucherStock(data) {
+  return request({
+    url: '/store/userVoucherManager/setVoucherStock',
+    method: 'post',
+    data
+  })
+}
 // 单查渠道商优惠券
 export function getVoucherByStoreOne(data) {
   return request({
